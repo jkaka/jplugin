@@ -1,0 +1,67 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+package $!packagePath;
+#set($rootPackage = $!context.rootPackage)
+
+import $!{rootPackage}.client.dto.*;
+import com.kaka.common.base.*;
+import java.util.List;
+import java.util.Map;
+
+/**
+* @Description： $!context.desc 对外服务类
+* @PackageName: $!packagePath
+* @ClassName: $!{entity}Read$!{type}
+* @project： $!context.sysCode
+* @author: springyu 一只很土的狼  pingchunyu@kaka.com.cn
+* @dep: 云端技术部
+* @company: 浙江亿咖通科技有限公司  Zhejiang e-CarX Technology Co., Ltd
+* @address: 浙江省杭州市滨江区泰安路杭州印B座17楼(华联·星光大道2期西)
+* @date： $!context.date
+*/
+public interface $!{entity}$!{type} {
+    /**
+     * 根据主键查询信息
+     * @param id
+     * @return
+     */
+    BaseResult<$!{entity}DTO>  selectOne($!{colKey.javaType} $!{colKey.attrName});
+    /**
+     * 根据传入参数查询列表 支持分页查询
+     * @param param
+    * key: pageIndex 当前页码 默认为0
+    * key: pageSize  页大小  默认为20
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
+
+        #else
+            * key:  $!column.attrName  $!column.colDesc
+        #end
+    #end
+     * @return
+     */
+    PageResult<List<$!{entity}DTO>> selectList(Map<String,Object> param);
+    /**
+    * 根据传入参数查询列表 支持分页查询
+    * @param param
+    * key: pageIndex 当前页码 默认为0
+    * key: pageSize  页大小  默认为20
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
+
+        #else
+            * key:  $!column.attrName  $!column.colDesc
+        #end
+    #end
+    * @return
+    */
+    BaseResult<Integer> countList(Map<String,Object> param);
+
+
+
+
+}

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($rootPackage = $!context.rootPackage)
+
+<mapper namespace="$!{rootPackage}.mapper.$!{entity}Mapper" >
+    <resultMap id="BaseResultMap" type="$!packagePath.$!{entity}DO" >
+        #foreach($column in $columns)
+            #if($column.isKey)
+             <id column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />
+            #else
+            <result column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />
+            #end
+        #end
+    </resultMap>
+
+    <sql id="base_column_list" >
+        #foreach($column in $columns)
+            $column.colName #if($velocityCount != $columns.size()),#end
+        #end
+    </sql>
+
+    <sql id="base_column_where" >
+            #foreach($column in $columns)
+            #if(!("java.util.Date"==($!{column.javaType})))
+            <if test="$!{column.attrName} != null" >
+                 AND $!column.colName = #{$!{column.attrName}}
+               </if>
+            #end
+            #end
+    </sql>
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="java.util.HashMap" >
+       SELECT
+       <include refid="base_column_list" />
+       FROM $!tableName
+        where 1=1
+        <include refid="base_column_where" />
+         order by $!colKey.colName
+        LIMIT #{offset},#{limit}
+
+    </select>
+
+    <select id="countList" resultType="java.lang.Integer"  parameterType="java.util.HashMap">
+       SELECT count(*) FROM $!tableName
+            where 1=1
+            <include refid="base_column_where" />
+
+        </select>
+
+     <select id="selectListByIds" parameterType="java.util.List" resultMap="BaseResultMap" >
+            SELECT
+           <include refid="base_column_list" />
+           FROM $!tableName
+           WHERE $!colKey.colName in
+           <foreach item="item" index="index" collection="list"  open="(" separator="," close=")">
+              #{item}
+           </foreach>
+        </select>
+
+    <select id="selectOne" parameterType="$!colKey.javaType" resultMap="BaseResultMap" >
+        SELECT
+       <include refid="base_column_list" />
+       FROM $!tableName
+       WHERE $!colKey.colName = #{$!colKey.attrName}
+    </select>
+
+    <insert id="insert" parameterType="$!packagePath.$!{entity}DO" >
+            <!-- mysql插入数据后，获取id -->
+    	  <selectKey keyProperty="$!colKey.colName" resultType="$!colKey.javaType" order="AFTER" >
+    		   SELECT LAST_INSERT_ID() as id
+    	  </selectKey>
+       INSERT INTO
+            $!tableName
+            (
+            #foreach($column in $columns)
+                $!column.colName#if($velocityCount != $columns.size()),#end
+            #end
+            )
+        VALUES
+            (
+            #foreach($column in $columns)
+              #if(("java.util.Date"==($!{column.javaType})))(UNIX_TIMESTAMP(now(3)) * 1000) #else #{$!column.attrName}#end #if($velocityCount != $columns.size()),#end
+            #end
+            )
+    </insert>
+
+    <update id="update" parameterType="$!packagePath.$!{entity}DO" >
+       UPDATE $!tableName SET
+       #foreach($column in $columns)
+           #if(!$column.isKey)
+           #if("gmt_modified" == $!{column.colName})
+                $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000)
+                #if($velocityCount != $columns.size()),#end
+            #elseif("gmt_create" == $!{column.colName}||"status" == $!{column.colName})
+            #else
+            <if test="$!column.attrName != null">$!column.colName = #{$!column.attrName}
+            #if($velocityCount != $columns.size()),#end </if>
+            #end
+
+           #end
+       #end
+       WHERE
+            $!colKey.colName = #{$!colKey.attrName}
+    </update>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+
+        INSERT INTO
+        $!tableName
+        (
+        #foreach($column in $columns)
+            $!column.colName#if($velocityCount != $columns.size()),#end
+        #end
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #foreach($column in $columns)
+                #if(("java.util.Date"==($!{column.javaType})))(UNIX_TIMESTAMP(now(3)) * 1000) #else #{item.$!column.attrName}#end #if($velocityCount != $columns.size()),#end
+            #end
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            UPDATE kaka_tbox SET
+            #foreach($column in $columns)
+                #if(!$column.isKey)
+                    #if("gmt_modified" == $!{column.colName})
+                        $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000)
+                        #if($velocityCount != $columns.size()),#end
+                    #elseif("gmt_create" == $!{column.colName}||"status" == $!{column.colName})
+                    #else
+                        <if test="item.$!column.attrName != null">$!column.colName = #{item.$!column.attrName}
+                            #if($velocityCount != $columns.size()),#end </if>
+                    #end
+
+                #end
+            #end
+            WHERE
+            $!colKey.colName = #{item.$!colKey.attrName}
+        </foreach>
+    </update>
+
+     <update id="updateStatus" parameterType="$!packagePath.$!{entity}DO" >
+           UPDATE $!tableName SET  gmt_modified = (UNIX_TIMESTAMP(now(3)) * 1000),last_user=#{lastUser},status=#{status}
+           WHERE
+                $!colKey.colName = #{$!colKey.attrName}
+        </update>
+
+    <delete id="delete" parameterType="$!colKey.javaType" >
+       DELETE FROM $!tableName WHERE $!colKey.colName = #{$!colKey.attrName}
+    </delete>
+</mapper>

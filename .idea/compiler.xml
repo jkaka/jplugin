@@ -7,10 +7,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="autoCode" />
+        <module name="autoCode-maven-plugin" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="testp" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>

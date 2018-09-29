@@ -1,0 +1,209 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($columns = $!context.columns)
+#set($beanName = $!context.beanName)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+package $!packagePath;
+#set($rootPackage = $!context.rootPackage)
+
+import $!{rootPackage}.client.dto.*;
+import $!{rootPackage}.client.service.*;
+import $!{rootPackage}.biz.service.*;
+import com.kaka.common.base.*;
+import java.util.List;
+import com.alibaba.dubbo.config.annotation.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.kaka.common.utils.LogUtil;
+import com.kaka.common.constants.Constants;
+import com.kaka.common.enums.ResultCode;
+
+/**
+* @Description： $!context.desc 对外服务类
+* @PackageName: $!packagePath
+* @ClassName: $!{entity}WriteImpl$!{type}
+* @project： $!context.sysCode
+* @author: springyu 一只很土的狼  pingchunyu@kaka.com.cn
+* @dep: 云端技术部
+* @company: 浙江亿咖通科技有限公司  Zhejiang e-CarX Technology Co., Ltd
+* @address: 浙江省杭州市滨江区泰安路杭州印B座17楼(华联·星光大道2期西)
+* @date： $!context.date
+*/
+
+@Service(version = "1.0.0", timeout = 10000)
+public class $!{entity}$!{type} implements $!{entity}WriteService{
+    private final LogUtil logger = new LogUtil(Constants.OPEN_SERVICE);
+
+    @Autowired
+    private $!{entity}Service $!{beanName}Service;
+
+    #set($isStatus = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="status")
+            #set($isStatus ="true")
+        #end
+    #end
+    #set($isLastUser = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="lastUser")
+            #set($isLastUser ="true")
+        #end
+    #end
+    #if($!isStatus=="true")
+    /**
+    * 启用记录
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> enable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end) {
+        logger.info("传入参数如下：$!{colKey.attrName}:"+$!{colKey.attrName});
+        BaseResult<Integer> result = new BaseResult<>();
+        result.setData(new Integer(0));
+        try{
+            int update = $!{beanName}Service.enable($!{colKey.attrName} #if($!{isLastUser}=="true"), userId #end);
+            result.setCode(ResultCode.SUCCESS.getCode());
+            result.setData(update);
+            result.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("启用记录失败，$!{colKey.attrName}:"+$!{colKey.attrName},e);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+    /**
+    * 禁用记录
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> disable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end) {
+        logger.info("传入参数如下：$!{colKey.attrName}:"+$!{colKey.attrName});
+        BaseResult<Integer> result = new BaseResult<>();
+        result.setData(new Integer(0));
+        try{
+            int update = $!{beanName}Service.disable($!{colKey.attrName} #if($!{isLastUser}=="true"), userId #end);
+            result.setCode(ResultCode.SUCCESS.getCode());
+            result.setData(update);
+            result.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("禁用记录失败，id:"+id,e);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+    #end
+    /**
+    * 新增一条记录
+    * @param $!{beanName}DTO
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> insert($!{entity}DTO $!{beanName}DTO) {
+        logger.info("传入参数如下：$!{beanName}DTO:"+$!{beanName}DTO);
+        BaseResult<Integer> result = new BaseResult<>();
+        result.setData(new Integer(0));
+        try{
+            int insert = $!{beanName}Service.insert($!{beanName}DTO);
+            result.setCode(ResultCode.SUCCESS.getCode());
+            result.setData(insert);
+            result.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("新增记录失败，$!{beanName}DTO:"+$!{beanName}DTO,e);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+    * 修改一条记录
+    * @param $!{beanName}DTO
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> update($!{entity}DTO $!{beanName}DTO) {
+        logger.info("传入参数如下：$!{beanName}DTO:"+$!{beanName}DTO);
+        BaseResult<Integer> result = new BaseResult<>();
+        result.setData(new Integer(0));
+        try{
+            int update = $!{beanName}Service.update($!{beanName}DTO);
+            result.setCode(ResultCode.SUCCESS.getCode());
+            result.setData(update);
+            result.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("更新记录失败，$!{beanName}DTO:"+$!{beanName}DTO,e);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+    * 批量新增记录
+    * @param list
+    * @return
+    */
+    @Override
+    public BaseResult<Boolean> insertBatch(List<$!{entity}DTO> list) {
+        logger.info("传入参数如下：list:"+list);
+        BaseResult<Boolean> baseResult = new BaseResult<>();
+        baseResult.setData(Boolean.FALSE);
+        try{
+            $!{beanName}Service.insertBatch(list);
+            baseResult.setCode(ResultCode.SUCCESS.getCode());
+            baseResult.setData(Boolean.TRUE);
+            baseResult.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("批量新增记录失败，list:"+list,e);
+            baseResult.setMessage(e.getMessage());
+        }
+        return baseResult;
+    }
+    /**
+    * 批量修改记录
+    * @param list
+    * @return
+    */
+    @Override
+    public BaseResult<Boolean> updateBatch(List<$!{entity}DTO> list) {
+        logger.info("传入参数如下：list:"+list);
+        BaseResult<Boolean> result = new BaseResult<>();
+        result.setData(Boolean.FALSE);
+        try{
+            $!{beanName}Service.updateBatch(list);
+            result.setCode(ResultCode.SUCCESS.getCode());
+            result.setData(Boolean.TRUE);
+            result.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("批量更新记录失败，car:"+list,e);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+    * 批量新增/修改记录
+    * @param insertList
+    * @param updateList
+    * @return
+    */
+    @Override
+    public BaseResult<Boolean> insertAndUpdateBatch(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList) {
+        logger.info("传入参数如下：insertList:"+insertList);
+        logger.info("传入参数如下：updateList:"+updateList);
+        BaseResult<Boolean> baseResult = new BaseResult<>();
+        baseResult.setData(Boolean.FALSE);
+        baseResult.setCode(ResultCode.FAILURE.getCode());
+        try{
+            $!{beanName}Service.insertAndUpdate(insertList,updateList);
+            baseResult.setCode(ResultCode.SUCCESS.getCode());
+            baseResult.setData(Boolean.TRUE);
+            baseResult.setSuccess(true);
+        } catch (Throwable e){
+            logger.error("批量新增/更新记录失败，insertList:"+insertList+",updateList"+updateList,e);
+            baseResult.setMessage(e.getMessage());
+        }
+        return baseResult;
+    }
+}

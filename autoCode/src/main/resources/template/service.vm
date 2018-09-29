@@ -1,0 +1,122 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($beanName = $!context.beanName)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+package $!packagePath;
+#set($rootPackage = $!context.rootPackage)
+import $!{rootPackage}.client.dto.*;
+import java.util.Map;
+import java.util.List;
+
+/**
+* @Description： $!context.desc
+* @PackageName: $!packagePath
+* @ClassName: $!{entity}${type}
+* @project： $!context.sysCode
+* @author: springyu 一只很土的狼  pingchunyu@kaka.com.cn
+* @dep: 云端技术部
+* @company: 浙江亿咖通科技有限公司  Zhejiang e-CarX Technology Co., Ltd
+* @address: 浙江省杭州市滨江区泰安路杭州印B座17楼(华联·星光大道2期西)
+* @date： $!context.date
+*/
+public interface $!{entity}$!{type} {
+    /**
+     * 根据主键查询信息
+     * @param $!{colKey.attrName}
+     * @return
+     */
+    $!{entity}DTO selectOne($!{colKey.javaType} $!{colKey.attrName});
+    /**
+     * 根据传入参数查询列表 支持分页查询
+     * @param param
+     * @return
+     */
+    List<$!{entity}DTO> selectList(Map<String,Object> param);
+    /**
+     * 根据条件查询记录总条数
+     * @param param
+     * @return
+     */
+    Integer countList(Map<String,Object> param);
+    /**
+     * 新增一条记录
+     * @param $!{beanName}DTO
+     * @return
+     */
+    int insert($!{entity}DTO $!{beanName}DTO);
+    /**
+     * 更新一条记录
+     * @param $!{beanName}DTO
+     * @return
+     */
+    int update($!{entity}DTO $!{beanName}DTO);
+    /**
+     * 删除一条记录
+     * @param id
+     * @return
+     */
+    int delete($!{colKey.javaType} $!{colKey.attrName});
+
+    #set($isStatus ="false")
+         #foreach($column in $columns)
+           #if($!{column.attrName}=="status")
+           #set($isStatus ="true")
+           #end
+         #end
+    #set($isLastUser = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="lastUser")
+            #set($isLastUser ="true")
+        #end
+    #end
+     #if($!{isStatus}=="true")
+
+     /**
+     * 启用数据
+     * @param $!{colKey.attrName}
+         #if($!{isLastUser}=="true")
+     * @param userId 操作人
+             #end
+     * @return
+     */
+    int enable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end);
+
+      /**
+      * 禁用数据
+      * @param $!{colKey.attrName}
+         #if($!{isLastUser}=="true")
+      * @param userId 操作人
+         #end
+      * @return
+      */
+      int disable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end);
+      #end
+
+    /**
+    * 批量新增记录
+    *
+    * @param list
+    * @return
+    */
+    void insertBatch(List<$!{entity}DTO> list)throws Exception;
+
+    /**
+    * 批量新增/更新记录
+    *
+    * @param insertList
+    * @param updateList
+    * @return
+    */
+    void insertAndUpdate(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList)throws Exception;
+
+    /**
+    * 批量更新记录
+    *
+    * @param list
+    * @return
+    */
+    void updateBatch(List<$!{entity}DTO> list)throws Exception;
+}

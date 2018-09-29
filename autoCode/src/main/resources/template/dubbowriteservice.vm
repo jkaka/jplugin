@@ -1,0 +1,91 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+package $!packagePath;
+#set($rootPackage = $!context.rootPackage)
+
+import $!{rootPackage}.client.dto.*;
+import com.kaka.common.base.*;
+import java.util.List;
+
+/**
+* @Description： $!context.desc 对外服务类
+* @PackageName: $!packagePath
+* @ClassName: $!{entity}Write$!{type}
+* @project： $!context.sysCode
+* @author: springyu 一只很土的狼  pingchunyu@kaka.com.cn
+* @dep: 云端技术部
+* @company: 浙江亿咖通科技有限公司  Zhejiang e-CarX Technology Co., Ltd
+* @address: 浙江省杭州市滨江区泰安路杭州印B座17楼(华联·星光大道2期西)
+* @date： $!context.date
+*/
+public interface $!{entity}$!{type} {
+    #set($isStatus = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="status")
+            #set($isStatus ="true")
+        #end
+    #end
+    #set($isLastUser = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="lastUser")
+            #set($isLastUser ="true")
+        #end
+    #end
+    #if($!isStatus=="true")
+    /**
+    * 启用记录
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    BaseResult<Integer> enable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end);
+    /**
+    * 禁用记录
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    BaseResult<Integer> disable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end);
+    #end
+    /**
+    * 新增记录
+    *
+    * @param $!{beanName}DTO
+    * @return
+    */
+    BaseResult<Integer> insert($!{entity}DTO $!{beanName}DTO);
+    /**
+    * 更新记录
+    *
+    * @param $!{beanName}DTO
+    * @return
+    */
+    BaseResult<Integer> update($!{entity}DTO $!{beanName}DTO);
+    /**
+    * 批量新增记录
+    *
+    * @param list
+    * @return
+    */
+    BaseResult<Boolean> insertBatch(List<$!{entity}DTO> list);
+    /**
+    * 批量更新记录
+    *
+    * @param list
+    * @return
+    */
+    BaseResult<Boolean> updateBatch(List<$!{entity}DTO> list);
+    /**
+    * 批量新增/修改记录
+    *
+    * @param insertList
+    * @param updateList
+    * @return
+    */
+    BaseResult<Boolean> insertAndUpdateBatch(List<$!{entity}DTO> insertList,List<$!{entity}DTO> updateList);
+
+
+
+}

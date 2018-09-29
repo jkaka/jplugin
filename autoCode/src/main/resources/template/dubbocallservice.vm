@@ -1,0 +1,109 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+#set($beanName = $!context.beanName)
+#set($rootPackage = $!context.rootPackage)
+#set($consumerRootPackage = $!context.consumerRootPackage)
+package $!{consumerRootPackage}.call.service;
+
+import com.kaka.common.base.BaseResult;
+import com.kaka.common.base.PageResult;
+import $!{rootPackage}.client.dto.*;
+import java.util.List;
+import java.util.Map;
+/**
+* @Description： $!context.desc 对外服务类
+* @PackageName: $!packagePath
+* @ClassName: $!{entity}$!{type}
+* @project： $!context.dubboConsumerSysCode
+* @author: springyu 一只很土的狼  pingchunyu@kaka.com.cn
+* @dep: 云端技术部
+* @company: 浙江亿咖通科技有限公司  Zhejiang e-CarX Technology Co., Ltd
+* @address: 浙江省杭州市滨江区泰安路杭州印B座17楼(华联·星光大道2期西)
+* @date： $!context.date
+*/
+public interface $!{entity}$!{type} {
+    /**
+    * 新增/更新记录
+    * @param insertList
+    * @param updateList
+    * @return
+    */
+    BaseResult<Boolean> insertAndUpdateBatch(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList);
+    /**
+    * 新增记录
+    * @param list
+    * @return
+    */
+    BaseResult<Boolean> insertBatch(List<$!{entity}DTO> list);
+    /**
+    * 更新记录
+    * @param list
+    * @return
+    */
+    BaseResult<Boolean> updateBatch(List<$!{entity}DTO> list);
+    /**
+    * 根据主键查询信息
+    *
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    BaseResult<$!{entity}DTO> selectOne($!{colKey.javaType} $!{colKey.attrName});
+    /**
+    * 根据param查询tbox列表
+    *
+    * @param param
+    * @return
+    */
+    PageResult<List<$!{entity}DTO>> selectList(Map<String,Object> param);
+    /**
+    * 根据param查询记录总数
+    *
+    * @param param
+    * @return
+    */
+    BaseResult<Integer> countList(Map<String,Object> param);
+    /**
+    * 更新一条记录
+    * @param $!{beanName}DTO
+    * @return
+    */
+    BaseResult<Integer> update($!{entity}DTO $!{beanName}DTO);
+    /**
+    * 新增一条记录
+    * @param $!{beanName}DTO
+    * @return
+    */
+    BaseResult<Integer> insert($!{entity}DTO $!{beanName}DTO);
+    #set($isStatus = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="status")
+            #set($isStatus ="true")
+        #end
+    #end
+    #set($isLastUser = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="lastUser")
+            #set($isLastUser ="true")
+        #end
+    #end
+    #if($!isStatus=="true")
+    /**
+    * 启用记录
+    *
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    BaseResult<Integer> enable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end);
+    /**
+    * 禁用记录
+    *
+    * @param $!{colKey.attrName}
+    * @return
+    */
+    BaseResult<Integer> disable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end);
+    #end
+}
