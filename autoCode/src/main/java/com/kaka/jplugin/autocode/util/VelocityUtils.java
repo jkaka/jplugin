@@ -8,7 +8,7 @@ import java.io.StringWriter;
 import java.util.Properties;
 
 /**
- * Created by springyu on 17-7-1.
+ * @author jsk
  */
 public class VelocityUtils {
 

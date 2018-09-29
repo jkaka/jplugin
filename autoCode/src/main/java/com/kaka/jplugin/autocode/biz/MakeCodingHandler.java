@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Created by springyu on 17-7-2.
+ * @author jsk
  */
 public class MakeCodingHandler implements Handler<String> {
 

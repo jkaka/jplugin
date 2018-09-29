@@ -9,10 +9,10 @@ import java.util.Date;
  * @Description： DB操作工具类
  * @PackageName: com.kaka.jplugin.autocode.util
  * @project： auto-code-maven-plugin
- * @author: springyu 一只很土的狼  pingchunyu@kaka.com.cn
- * @dep: 云端技术部
- * @company: 浙江亿咖通科技有限公司  Zhejiang e-CarX Technology Co., Ltd
- * @address: 浙江省杭州市滨江区泰安路杭州印B座17楼(华联·星光大道2期西)
+ * @author: jsk
+ * @dep: ***部门
+ *
+ * @address: hundsun
  * @date： 2017-08-19 星期六 下午2:31
  */
 public class JdbcUtil {

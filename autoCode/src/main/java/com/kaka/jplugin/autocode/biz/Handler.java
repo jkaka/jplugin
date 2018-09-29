@@ -1,7 +1,7 @@
 package com.kaka.jplugin.autocode.biz;
 
 /**
- * Created by springyu on 17-7-2.
+ * @author jsk
  */
 public interface Handler<T> {
        String BACKSLASH="/";

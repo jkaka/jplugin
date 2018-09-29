@@ -1,7 +1,7 @@
 package com.kaka.jplugin.autocode.vo;
 
 /**
- * Created by springyu on 17-7-1.
+ * @author jsk
  */
 public class ColumnVO extends BaseVO {
 
