@@ -7,7 +7,7 @@
 #set($type = $!context.type)
 package $!packagePath;
 #set($rootPackage = $!context.rootPackage)
-import $!{rootPackage}.client.dto.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
 import java.util.Map;
 import java.util.List;
 
@@ -17,9 +17,9 @@ import java.util.List;
 * @ClassName: $!{entity}${type}
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
 public interface $!{entity}$!{type} {

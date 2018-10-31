@@ -6,18 +6,20 @@
 #set($rootPackage = $!context.rootPackage)
 package $!packagePath;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.Data;
+
 /**
 * @Description： $!context.desc
 * @PackageName: $!packagePath
 * @ClassName: $!{entity}DO
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
+@Data
 public class $!{entity}DO {
    #foreach($column in $columns)
     /**
@@ -25,9 +27,7 @@ public class $!{entity}DO {
      */
     private $column.javaType $column.attrName;
    #end
-
-
-#foreach($column in $columns)
+#*#foreach($column in $columns)
     public $!column.javaType get$!column.methodName () {
     #if($!column.javaType=="java.lang.String"|| $!column.javaType=="String")
     return StringUtils.trim($!column.attrName);
@@ -43,6 +43,5 @@ public class $!{entity}DO {
         this.$!column.attrName = $!column.attrName;
         #end
     }
-  #end
-
+  #end*#
 }

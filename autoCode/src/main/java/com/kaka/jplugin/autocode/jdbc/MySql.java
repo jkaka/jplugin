@@ -2,10 +2,11 @@ package com.kaka.jplugin.autocode.jdbc;
 
 
 import com.kaka.jplugin.autocode.util.JdbcUtil;
+import com.kaka.jplugin.autocode.util.StringUtil;
 import com.kaka.jplugin.autocode.vo.ColumnVO;
 import com.kaka.jplugin.autocode.vo.PrimaryKeyVO;
 import com.kaka.jplugin.autocode.vo.TableVO;
-import com.kaka.jplugin.autocode.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.*;
@@ -15,9 +16,6 @@ import java.util.*;
  * JDBC操作元数据
  */
 public class MySql {
-
-    //获得url
-    private String url = "jdbc:mysql://rm-bp1i336i44k6f0f94o.mysql.rds.aliyuncs.com:3306/g-usercenter?characterEncoding=utf-8&useUnicode=true";
 
     private Connection conn;
 
@@ -77,12 +75,11 @@ public class MySql {
     }
 
 
-
-
-
     public void close(ResultSet rs) {
         try {
-            rs.close();
+            if (Objects.nonNull(rs)) {
+                rs.close();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -95,7 +92,7 @@ public class MySql {
     /**
      * @throws
      * @Description: 获取数据库相关信息
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-27 下午5:09:12
      */
     public void getDataBaseInfo() {
@@ -130,7 +127,7 @@ public class MySql {
     /**
      * @throws
      * @Description:获得数据库中所有Schemas(对应于oracle中的Tablespace)
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-27 下午5:10:35
      */
     public void getSchemasInfo() {
@@ -153,10 +150,10 @@ public class MySql {
     /**
      * @throws
      * @Description: 获取数据库中所有的表信息
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-27 下午5:08:28
      */
-    public List<TableVO> getTablesList() {
+    public List<TableVO> getTablesList(List<String> tableNameList) {
         Connection conn = getConnection();
         ResultSet rs = null;
         List<TableVO> tableList = new ArrayList<TableVO>();
@@ -166,17 +163,21 @@ public class MySql {
             rs = dbmd.getTables(null, null, "%", types);
             while (rs.next()) {
                 String tableName = rs.getString("TABLE_NAME").toLowerCase();  //表名
+                if (CollectionUtils.isNotEmpty(tableNameList) && !tableNameList.contains(tableName)) {
+                    continue;
+                }
                 String tableType = rs.getString("TABLE_TYPE");  //表类型
                 String remarks = rs.getString("REMARKS");       //表备注
                 TableVO tableVO = new TableVO();
                 tableVO.setPrimaryKeys(this.getPrimaryKeysInfo(tableName));
                 tableVO.setTableName(tableName);
-                if(StringUtils.isBlank(remarks)){
+                if (StringUtils.isBlank(remarks)) {
                     remarks = tableName;
                 }
                 tableVO.setTableRemark(remarks);
                 tableVO.setEntity(StringUtil.upperCaseFirst(StringUtil.toCamelCase(tableName)));
                 tableVO.setBeanName(StringUtil.toCamelCase(tableName));
+
                 tableList.add(tableVO);
             }
         } catch (SQLException e) {
@@ -190,7 +191,7 @@ public class MySql {
     /**
      * @throws
      * @Description: 获取某表信息
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-27 下午3:26:30
      */
     public void getTablesInfo() {
@@ -234,14 +235,14 @@ public class MySql {
     /**
      * @throws
      * @Description: 获取表主键信息
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-27 下午5:12:53
      */
-    public Map<String,PrimaryKeyVO> getPrimaryKeysInfo(String tableName) {
+    public Map<String, PrimaryKeyVO> getPrimaryKeysInfo(String tableName) {
         Connection conn = getConnection();
         ResultSet rs = null;
 
-        Map<String,PrimaryKeyVO> data = new HashMap<String, PrimaryKeyVO>();
+        Map<String, PrimaryKeyVO> data = new HashMap<String, PrimaryKeyVO>();
         try {
             DatabaseMetaData dbmd = (DatabaseMetaData) conn.getMetaData();
             /**
@@ -256,7 +257,7 @@ public class MySql {
             while (rs.next()) {
                 //String tableCat = rs.getString("TABLE_CAT");  //表类别(可为null)
                 //String tableSchemaName = rs.getString("TABLE_SCHEM");//表模式（可能为空）,在oracle中获取的是命名空间,其它数据库未知
-               // String tableName1 = rs.getString("TABLE_NAME");  //表名
+                // String tableName1 = rs.getString("TABLE_NAME");  //表名
                 String columnName = rs.getString("COLUMN_NAME").toLowerCase();//列名
                 short keySeq = rs.getShort("KEY_SEQ");//序列号(主键内值1表示第一列的主键，值2代表主键内的第二列)
                 String pkName = rs.getString("PK_NAME"); //主键名称
@@ -265,9 +266,9 @@ public class MySql {
                 primaryKeyVO.setKeySeq(keySeq);
                 primaryKeyVO.setPkName(pkName);
                 primaryKeyVO.setTableName(tableName);
-                data.put(columnName,primaryKeyVO);
-               // System.out.println(tableCat + " - " + tableSchemaName + " - " + tableName1 + " - " + columnName + " - "
-                       // + keySeq + " - " + pkName);
+                data.put(columnName, primaryKeyVO);
+                // System.out.println(tableCat + " - " + tableSchemaName + " - " + tableName1 + " - " + columnName + " - "
+                // + keySeq + " - " + pkName);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -328,18 +329,18 @@ public class MySql {
     /**
      * @throws
      * @Description: 获取表中列值信息
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-27 下午2:55:56
      */
-    public Map<String,List<ColumnVO>> getColumnsInfo(TableVO table) {
+    public Map<String, List<ColumnVO>> getColumnsInfo(TableVO table) {
         Connection conn = getConnection();
         ResultSet rs = null;
         String tableName = table.getTableName();
         List<ColumnVO> columnList = new ArrayList<ColumnVO>();
-        Map<String,List<ColumnVO>> data = new HashMap<String, List<ColumnVO>>();
-        data.put(tableName,columnList);
+        Map<String, List<ColumnVO>> data = new HashMap<String, List<ColumnVO>>();
+        data.put(tableName, columnList);
         table.setColumnList(columnList);
-        Map<String, PrimaryKeyVO> pKeyData =table.getPrimaryKeys();
+        Map<String, PrimaryKeyVO> pKeyData = table.getPrimaryKeys();
         try {
             DatabaseMetaData dbmd = conn.getMetaData();
             /**
@@ -354,7 +355,7 @@ public class MySql {
 
             while (rs.next()) {
                 ColumnVO columnVO = new ColumnVO();
-               // String tableCat = rs.getString("TABLE_CAT");  //表类别（可能为空）
+                // String tableCat = rs.getString("TABLE_CAT");  //表类别（可能为空）
                 //String tableSchemaName = rs.getString("TABLE_SCHEM");  //表模式（可能为空）,在oracle中获取的是命名空间,其它数据库未知
                 String tableName_ = rs.getString("TABLE_NAME");  //表名
                 String columnName = rs.getString("COLUMN_NAME").toLowerCase();  //列名
@@ -390,7 +391,7 @@ public class MySql {
                 //String isAutoincrement = rs.getString("IS_AUTOINCREMENT");   //该参数测试报错
                 columnVO.setColName(columnName);
                 columnVO.setColType(JDBCType.valueOf(dataType).name());
-                if(StringUtils.isBlank(remarks)){
+                if (StringUtils.isBlank(remarks)) {
                     remarks = columnName;
                 }
                 columnVO.setColDesc(remarks);
@@ -398,13 +399,13 @@ public class MySql {
                 columnVO.setNotNull(Boolean.FALSE);
                 columnVO.setPrimaryKey(Boolean.FALSE);
 
-                if(nullAble==0){
+                if (nullAble == 0) {
                     columnVO.setNotNull(Boolean.TRUE);
                 }
-               // System.out.println(columnName+",isNullAble:"+isNullAble+",nullAble:"+nullAble+","+columnVO.getNotNull());
-                if(null != pKeyData && !pKeyData.isEmpty()){
+                // System.out.println(columnName+",isNullAble:"+isNullAble+",nullAble:"+nullAble+","+columnVO.getNotNull());
+                if (null != pKeyData && !pKeyData.isEmpty()) {
                     PrimaryKeyVO primaryKeyVO = pKeyData.get(columnVO.getColName());
-                    if(null != primaryKeyVO){
+                    if (null != primaryKeyVO) {
                         columnVO.setPrimaryKey(Boolean.TRUE);
                     }
                 }
@@ -424,22 +425,21 @@ public class MySql {
     }
 
 
-
     /**
      * @param args
      * @throws
      * @Description: TODO
-     * @author: 一只很土的狼
+     * @author: jsk
      * @CreateTime: 2014-1-17 下午2:47:45
      */
     public static void main(String[] args) {
-       // MySql mySql = new MySql();
+        // MySql mySql = new MySql();
         //List<TableVO> list = mySql.getTablesList();
         //if (null != list && !list.isEmpty()) {
-           // for (TableVO table : list) {
-                //Map<String,List<ColumnVO>>  data = mySql.getColumnsInfo(table);
-                //System.out.println(data);
-           // }
+        // for (TableVO table : list) {
+        //Map<String,List<ColumnVO>>  data = mySql.getColumnsInfo(table);
+        //System.out.println(data);
+        // }
         //}
         // getDataBaseInfo();  //获取数据库信息
         //  getSchemasInfo(); //获取数据库所有Schema

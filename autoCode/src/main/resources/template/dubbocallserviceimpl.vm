@@ -7,19 +7,20 @@
 #set($beanName = $!context.beanName)
 #set($rootPackage = $!context.rootPackage)
 #set($consumerRootPackage = $!context.consumerRootPackage)
-package $!{consumerRootPackage}.call.service.impl;
+package $!packagePath;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.kaka.common.base.BaseResult;
 import com.kaka.common.base.PageResult;
 import com.kaka.common.constants.Constants;
+import com.kaka.common.utils.BaseResultUtil;
 import com.kaka.common.utils.LogUtil;
-import $!{rootPackage}.client.dto.*;
-import $!{rootPackage}.client.service.*;
-import $!{consumerRootPackage}.call.service.$!{entity}CallService;
-
+import $!{rootPackage}.#if(!$!{context.codeStatus})#if(!$!{context.codeStatus})client.#{end}#{end}dto.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})#if(!$!{context.codeStatus})client.#{end}#{end}service.*;
+#if(!$!{context.codeStatus})import $!{consumerRootPackage}.call.service.$!{entity}CallService;#{end}
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+import org.springframework.util.CollectionUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,11 +29,11 @@ import java.util.Objects;
 * @Description： $!context.desc 对外服务类
 * @PackageName: $!packagePath
 * @ClassName: $!{entity}$!{type}
-* @project： $!context.dubboConsumerSysCode
+* @project： $!context.consumerSysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
 @Service
@@ -45,81 +46,6 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     private $!{entity}WriteService $!{beanName}WriteService;
 
     /**
-    * 批量新增/更新记录
-    *
-    * @param insertList
-    * @param updateList
-    * @return
-    */
-    @Override
-    public BaseResult<Boolean> insertAndUpdateBatch(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList){
-        logger.info("批量新增/更新参数如下：insertList:" + insertList+",updateList:"+updateList);
-        BaseResult<Boolean> baseResult = new BaseResult<>();
-        baseResult.setData(false);
-        if((Objects.isNull(insertList)||insertList.isEmpty())&&(Objects.isNull(updateList)||updateList.isEmpty())){
-            baseResult.setData(Boolean.TRUE);
-            baseResult.setMessage("传入参数为空!");
-            return baseResult;
-        }
-        try {
-            baseResult = $!{beanName}WriteService.insertAndUpdateBatch(insertList,updateList);
-        } catch (Throwable e) {
-            logger.error("批量新增/更新记录失败!", e);
-            baseResult.setMessage(e.getMessage());
-        }
-        return baseResult;
-    }
-
-    /**
-    * 批量新增记录
-    *
-    * @param list
-    * @return
-    */
-    @Override
-    public BaseResult<Boolean> insertBatch(List<$!{entity}DTO> list){
-        logger.info("批量新增参数如下：" + list);
-        BaseResult<Boolean> baseResult = new BaseResult<>();
-        baseResult.setData(false);
-        if(Objects.isNull(list)||list.isEmpty()){
-            baseResult.setData(Boolean.TRUE);
-            baseResult.setMessage("传入参数为空!");
-            return baseResult;
-        }
-        try {
-            baseResult = $!{beanName}WriteService.insertBatch(list);
-        } catch (Throwable e) {
-            logger.error("批量新增记录失败!", e);
-            baseResult.setMessage(e.getMessage());
-        }
-        return baseResult;
-    }
-
-    /**
-    * 批量更新记录
-    *
-    * @param list
-    * @return
-    */
-    @Override
-    public BaseResult<Boolean> updateBatch(List<$!{entity}DTO> list){
-        logger.info("批量更新参数如下：" + list);
-        BaseResult<Boolean> baseResult = new BaseResult<>();
-        baseResult.setData(false);
-        if(Objects.isNull(list)||list.isEmpty()){
-            baseResult.setData(Boolean.TRUE);
-            baseResult.setMessage("传入参数为空!");
-            return baseResult;
-        }
-        try {
-             baseResult = $!{beanName}WriteService.updateBatch(list);
-        } catch (Throwable e) {
-            logger.error("批量更新记录失败!", e);
-            baseResult.setMessage(e.getMessage());
-        }
-        return baseResult;
-    }
-    /**
     * 根据主键查询信息
     *
     * @param $!{colKey.attrName}
@@ -127,13 +53,18 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     */
     @Override
     public BaseResult<$!{entity}DTO> selectOne($!{colKey.javaType} $!{colKey.attrName}) {
-        logger.info("根据id查询tservice参数如下：" + id);
+        if(Objects.isNull($!{colKey.attrName})){
+            logger.info("查询主键不能为空！");
+            return BaseResultUtil.handlerFailure(null, "查询主键不能为空！");
+        }
+
+        logger.info("根据id查询$!{entity}DTO参数如下：" + $!{colKey.attrName});
         BaseResult<$!{entity}DTO> baseResult = new BaseResult<>();
         try {
             baseResult = $!{beanName}ReadService.selectOne(id);
         } catch (Throwable e) {
             logger.error("根据主键查询记录失败!", e);
-            baseResult.setMessage(e.getMessage());
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}ReadService");
         }
         return baseResult;
     }
@@ -146,62 +77,13 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     */
     @Override
     public PageResult<List<$!{entity}DTO>> selectList(Map<String,Object> param) {
-        logger.info("查询tservice列表参数如下：param=" + param);
+        logger.info("查询$!{entity}DTO列表参数如下：param=" + param);
         PageResult<List<$!{entity}DTO>> baseResult = new PageResult<>();
-        baseResult.setData(new ArrayList<>());
         try {
-             baseResult = $!{beanName}ReadService.selectList(param);
+            baseResult = $!{beanName}ReadService.selectList(param);
         } catch (Throwable e) {
             logger.error("根据param查询列表失败!", e);
-            baseResult.setMessage(e.getMessage());
-        }
-        return baseResult;
-    }
-
-    /**
-    * 更新记录
-    * @param $!{beanName}DTO
-    * @return
-    */
-    @Override
-    public BaseResult<Integer> update($!{entity}DTO $!{beanName}DTO){
-    logger.info("更新记录参数如下：$!{beanName}DTO=" + $!{beanName}DTO);
-    BaseResult<Integer> baseResult = new BaseResult<>();
-    baseResult.setData(new Integer(0));
-    if(null == $!{beanName}DTO){
-        logger.info("传入参数为空");
-        baseResult.setMessage("传入参数为空");
-        return baseResult;
-    }
-    try {
-        baseResult = $!{beanName}WriteService.update($!{beanName}DTO);
-    } catch (Throwable e) {
-        logger.error("更新记录失败!", e);
-        baseResult.setMessage(e.getMessage());
-    }
-    return baseResult;
-    }
-
-    /**
-    * 新增记录
-    * @param $!{beanName}DTO
-    * @return
-    */
-    @Override
-    public BaseResult<Integer> insert($!{entity}DTO $!{beanName}DTO){
-        logger.info("新增记录参数如下：$!{beanName}DTO=" + $!{beanName}DTO);
-        BaseResult<Integer> baseResult = new BaseResult<>();
-        baseResult.setData(new Integer(0));
-        if(null == $!{beanName}DTO){
-            logger.info("传入参数为空，默认返回0");
-            baseResult.setMessage("传入参数为空");
-            return baseResult;
-        }
-        try {
-            baseResult = $!{beanName}WriteService.insert($!{beanName}DTO);
-        } catch (Throwable e) {
-            logger.error("新增记录失败!", e);
-            baseResult.setMessage(e.getMessage());
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}ReadService");
         }
         return baseResult;
     }
@@ -216,27 +98,72 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     public BaseResult<Integer> countList(Map<String,Object> param) {
         logger.info("根据param查询记录总数参数如下：param=" + param);
         BaseResult<Integer> baseResult = new BaseResult<>();
-        baseResult.setData(new Integer(0));
         try {
             baseResult = $!{beanName}ReadService.countList(param);
         } catch (Throwable e) {
             logger.error("根据param查询记录总数失败!", e);
-            baseResult.setMessage(e.getMessage());
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}ReadService");
         }
         return baseResult;
     }
+
+    /**
+    * 新增记录
+    * @param $!{beanName}DTO
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> insert($!{entity}DTO $!{beanName}DTO){
+        if(Objects.isNull($!{beanName}DTO)){
+            logger.info("传入参数为空，默认返回0");
+            return BaseResultUtil.handlerFailure(0, "传入参数为空");
+        }
+
+        logger.info("新增记录参数如下：$!{beanName}DTO=" + $!{beanName}DTO);
+        BaseResult<Integer> baseResult = new BaseResult<>();
+        try {
+            baseResult = $!{beanName}WriteService.insert($!{beanName}DTO);
+        } catch (Throwable e) {
+            logger.error("新增记录失败!", e);
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
+        }
+        return baseResult;
+    }
+
+
+    /**
+    * 更新记录
+    * @param $!{beanName}DTO
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> update($!{entity}DTO $!{beanName}DTO){
+        logger.info("更新记录参数如下：$!{beanName}DTO=" + $!{beanName}DTO);
+        BaseResult<Integer> baseResult = new BaseResult<>();
+        if(Objects.isNull($!{beanName}DTO) || Objects.isNull($!{beanName}DTO.get$!{colKey.methodName}())){
+            logger.info("记录主键为空！");
+            baseResult.setMessage("记录主键为空！");
+            return baseResult;
+        }
+        try {
+            baseResult = $!{beanName}WriteService.update($!{beanName}DTO);
+        } catch (Throwable e) {
+            logger.error("更新记录失败!", e);
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
+        }
+        return baseResult;
+    }
+
     #set($isStatus = "false")
+    #set($isLastUser = "false")
     #foreach($column in $columns)
         #if($!column.attrName=="status")
             #set($isStatus ="true")
-        #end
-    #end
-    #set($isLastUser = "false")
-    #foreach($column in $columns)
-        #if($!column.attrName=="lastUser")
+        #elseif($!column.attrName=="lastUser")
             #set($isLastUser ="true")
         #end
     #end
+
     #if($!isStatus=="true")
     /**
     * 启用记录
@@ -247,16 +174,20 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     @Override
     public BaseResult<Integer>  enable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end) {
         logger.info("启用记录如下：$!{colKey.attrName}=" + $!{colKey.attrName});
+        if(Objects.isNull(id)){
+            logger.info("启用记录,主键不能为空!");
+            return BaseResultUtil.handlerFailure(0, "启用记录,主键不能为空!");
+        }
         BaseResult<Integer> baseResult = new BaseResult<>();
-        baseResult.setData(new Integer(0));
         try {
              baseResult = $!{beanName}WriteService.enable($!{colKey.attrName} #if($!{isLastUser}=="true"),userId #end);
         } catch (Throwable e) {
             logger.error("启用记录失败!", e);
-            baseResult.setMessage(e.getMessage());
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
         }
         return baseResult;
     }
+
     /**
     * 禁用记录
     *
@@ -266,16 +197,85 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     @Override
     public BaseResult<Integer> disable($!{colKey.javaType} $!{colKey.attrName} #if($!{isLastUser}=="true"),String userId #end) {
         logger.info("禁用记录如下：$!{colKey.attrName}=" + $!{colKey.attrName});
+        if(Objects.isNull(id)){
+            logger.info("禁用记录,主键不能为空!");
+            return BaseResultUtil.handlerFailure(0, "禁用记录,主键不能为空!");
+        }
         BaseResult<Integer> baseResult = new BaseResult<>();
-        baseResult.setData(new Integer(0));
         try {
              baseResult = $!{beanName}WriteService.disable($!{colKey.attrName} #if($!{isLastUser}=="true"),userId #end);
         } catch (Throwable e) {
             logger.error("禁用记录失败!", e);
-            baseResult.setMessage(e.getMessage());
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
         }
         return baseResult;
     }
     #end
 
+    /**
+    * 批量新增/更新记录
+    *
+    * @param insertList
+    * @param updateList
+    * @return
+    */
+    @Override
+    public BaseResult<Boolean> insertAndUpdateBatch(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList){
+        logger.info("批量新增/更新参数如下：insertList:" + insertList+",updateList:" + updateList);
+        BaseResult<Boolean> baseResult = new BaseResult<>();
+        if(CollectionUtils.isEmpty(insertList) && CollectionUtils.isEmpty(updateList)){
+            return BaseResultUtil.handlerFailure(Boolean.FALSE, "传入参数为空!");
+        }
+        try {
+            baseResult = $!{beanName}WriteService.insertAndUpdateBatch(insertList, updateList);
+        } catch (Throwable e) {
+            logger.error("批量新增/更新记录失败!", e);
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
+        }
+        return baseResult;
+    }
+
+    /**
+    * 批量新增记录
+    *
+    * @param list
+    * @return
+    */
+    @Override
+    public BaseResult<Boolean> insertBatch(List<$!{entity}DTO> list){
+        logger.info("批量新增参数如下：" + list);
+        BaseResult<Boolean> baseResult = new BaseResult<>();
+        if(CollectionUtils.isEmpty(list)){
+            return BaseResultUtil.handlerFailure(Boolean.FALSE, "传入参数为空!");
+        }
+        try {
+            baseResult = $!{beanName}WriteService.insertBatch(list);
+        } catch (Throwable e) {
+            logger.error("批量新增记录失败!", e);
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
+        }
+        return baseResult;
+    }
+
+    /**
+    * 批量更新记录
+    *
+    * @param list
+    * @return
+    */
+    @Override
+    public BaseResult<Boolean> updateBatch(List<$!{entity}DTO> list){
+        logger.info("批量更新参数如下：" + list);
+        BaseResult<Boolean> baseResult = new BaseResult<>();
+        if(CollectionUtils.isEmpty(list)){
+            return BaseResultUtil.handlerFailure(Boolean.FALSE, "传入参数为空!");
+        }
+        try {
+            baseResult = $!{beanName}WriteService.updateBatch(list);
+        } catch (Throwable e) {
+            logger.error("批量更新记录失败!", e);
+            baseResult.setMessage("调用dubbo服务失败！$!{beanName}WriteService");
+        }
+        return baseResult;
+    }
 }

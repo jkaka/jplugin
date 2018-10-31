@@ -16,11 +16,11 @@ public class RenderHandler implements Handler<String> {
 
     private String loaderPath;
 
-    public RenderHandler(ContextVO contextVO,String loaderPath) {
-        this(contextVO, loaderPath,ENCODING);
+    public RenderHandler(ContextVO contextVO, String loaderPath) {
+        this(contextVO, loaderPath, ENCODING);
     }
 
-    public RenderHandler(ContextVO contextVO, String loaderPath,String ecnoding) {
+    public RenderHandler(ContextVO contextVO, String loaderPath, String ecnoding) {
         this.contextVO = contextVO;
         this.ecnoding = ecnoding;
         this.loaderPath = loaderPath;

@@ -7,22 +7,22 @@
 #set($beanName = $!context.beanName)
 #set($rootPackage = $!context.rootPackage)
 #set($consumerRootPackage = $!context.consumerRootPackage)
-package $!{consumerRootPackage}.call.service;
+package $!{consumerRootPackage}.call#if(!$!{context.codeStatus}).service#{end};
 
 import com.kaka.common.base.BaseResult;
 import com.kaka.common.base.PageResult;
-import $!{rootPackage}.client.dto.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
 import java.util.List;
 import java.util.Map;
 /**
 * @Description： $!context.desc 对外服务类
 * @PackageName: $!packagePath
 * @ClassName: $!{entity}$!{type}
-* @project： $!context.dubboConsumerSysCode
+* @project： $!context.consumerSysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
 public interface $!{entity}$!{type} {
@@ -53,7 +53,7 @@ public interface $!{entity}$!{type} {
     */
     BaseResult<$!{entity}DTO> selectOne($!{colKey.javaType} $!{colKey.attrName});
     /**
-    * 根据param查询tbox列表
+    * 根据param查询$!{beanName}列表
     *
     * @param param
     * @return

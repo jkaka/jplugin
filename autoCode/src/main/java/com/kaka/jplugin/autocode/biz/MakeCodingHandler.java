@@ -19,7 +19,7 @@ public class MakeCodingHandler implements Handler<String> {
     private String content;
 
     public MakeCodingHandler(ContextVO contextVO, String content) {
-        this(contextVO, content,ENCODING);
+        this(contextVO, content, ENCODING);
     }
 
     public MakeCodingHandler(ContextVO contextVO, String content, String ecnoding) {
@@ -31,38 +31,38 @@ public class MakeCodingHandler implements Handler<String> {
     @Override
     public String excute() {
         // com.demo.ota.   biz.service
-        String packagePath = contextVO.getPackagePath().replace(POINT,BACKSLASH);
-        String filePath = contextVO.getResPath()+packagePath+BACKSLASH;
+        String packagePath = contextVO.getPackagePath().replace(POINT, BACKSLASH);
+        String filePath = contextVO.getResPath() + packagePath + BACKSLASH;
         File file = new File(filePath);
-        if(!file.exists()){
+        if (!file.exists()) {
             file.mkdirs();
         }
         Boolean success = Boolean.FALSE;
         StringBuilder fileName = new StringBuilder(contextVO.getEntity());
-        if(StringUtils.isNotBlank(contextVO.getType())){
+        if (StringUtils.isNotBlank(contextVO.getType())) {
             fileName.append(contextVO.getType());
         }
         //System.out.println("contextVO.getType()==="+contextVO.getType());
         //if("Controller".equals(contextVO.getType())) {
-           // fileName.append("1");
+        // fileName.append("1");
         //}
         fileName.append(POINT).append(contextVO.getSuffix());
-        File f = new File(file,fileName.toString());
+        File f = new File(file, fileName.toString());
         byte[] buff = new byte[0];
 
-        if(!f.exists()){
-            FileOutputStream out= null;
+        if (!f.exists()) {
+            FileOutputStream out = null;
 
             try {
                 f.createNewFile();
                 buff = content.getBytes(ecnoding);
                 out = new FileOutputStream(f);
-                out.write(buff,0,buff.length);
+                out.write(buff, 0, buff.length);
                 success = Boolean.TRUE;
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                if(null != out){
+                if (null != out) {
                     try {
                         out.close();
                     } catch (IOException e) {
@@ -72,7 +72,7 @@ public class MakeCodingHandler implements Handler<String> {
             }
 
         }
-        if(success){
+        if (success) {
             return f.getName();
         }
 

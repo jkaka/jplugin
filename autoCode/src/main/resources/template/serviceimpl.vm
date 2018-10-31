@@ -8,17 +8,20 @@
 #set($rootPackage = $!context.rootPackage)
 package $!packagePath;
 
-import $!{rootPackage}.biz.dataobject.*;
-import $!{rootPackage}.biz.service.$!{entity}Service;
-import $!{rootPackage}.client.dto.*;
-import $!{rootPackage}.biz.mapper.*;
+import com.kaka.common.constants.Constants;
 import com.kaka.common.utils.LogUtil;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
+#if(!$!{context.codeStatus})import $!{rootPackage}.biz.service.$!{entity}Service;#{end}
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}mapper.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 #set($isStatus = "false")
 #foreach($column in $columns)
     #if($!column.attrName=="status")
@@ -31,6 +34,7 @@ import java.util.Objects;
         #set($isLastUser ="true")
     #end
 #end
+
 #if($!isStatus=="true")
 import com.kaka.common.enums.KakaStatus;
 #end
@@ -45,16 +49,30 @@ import org.springframework.transaction.annotation.Transactional;
 * @ClassName: $!{entity}${type}
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
 @Service
 public class $!{entity}$!{type} implements $!{entity}Service {
     private  final LogUtil logger = new LogUtil(this.getClass());
+
     @Autowired
     private $!{entity}Mapper $!{beanName}Mapper;
+
+    #set($isStatus = "false")
+    #set($isLastUser = "false")
+    #set($isCreateUser = "false")
+    #foreach($column in $columns)
+        #if($!column.attrName=="status")
+            #set($isStatus ="true")
+        #elseif($!column.attrName=="lastUser")
+            #set($isLastUser ="true")
+        #elseif($!column.attrName=="createUser")
+            #set($isCreateUser ="true")
+        #end
+    #end
 
     /**
      * 根据主键查询信息
@@ -63,19 +81,17 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public $!{entity}DTO selectOne($!{colKey.javaType} $!{colKey.attrName}) {
-        if(null == $!{colKey.attrName}){
-            logger.error("传入参数为空！");
+        if(Objects.isNull($!{colKey.attrName})){
+            logger.error("传入主键为空！");
             return null;
         }
         $!{entity}DO $!{beanName}DO = $!{beanName}Mapper.selectOne($!{colKey.attrName});
-        if(null == $!{beanName}DO){
-         logger.error("查询结果为空！$!{colKey.attrName}="+$!{colKey.attrName});
-         return null;
+        if(Objects.isNull($!{beanName}DO)){
+            logger.error("查询结果为空！$!{colKey.attrName}="+$!{colKey.attrName});
+            return null;
         }
         $!{entity}DTO $!{beanName}DTO = new $!{entity}DTO();
-        #foreach($column in $columns)
-            $!{beanName}DTO.set$!{column.methodName}($!{beanName}DO.get$!{column.methodName}());
-        #end
+        BeanUtils.copyProperties($!{beanName}DO, $!{beanName}DTO);
         return $!{beanName}DTO;
     }
 
@@ -86,13 +102,12 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public List<$!{entity}DTO> selectList(Map<String, Object> param) {
-        //#{offset},#{limit}
-        if(null == param || param.isEmpty()){
-            return null;
+        if(Objects.isNull(param)){
+            param = new HashMap<>();
         }
-        if(!(param.containsKey("offset")&&param.containsKey("limit"))){
-            param.put("offset",0);
-            param.put("limit",500);
+        if(!(param.containsKey(Constants.OFFSET_KEY) && param.containsKey(Constants.LIMIT_KEY))){
+            param.put(Constants.OFFSET_KEY, 0);
+            param.put(Constants.LIMIT_KEY, 500);
         }
         List<$!{entity}DTO> valueList = new ArrayList<$!{entity}DTO>();
         List<$!{entity}DO> dataList = $!{beanName}Mapper.selectList(param);
@@ -103,9 +118,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
         for(int i=0;i<dataList.size();i++){
             $!{entity}DO $!{beanName}DO = dataList.get(i);
             $!{entity}DTO $!{beanName}DTO = new $!{entity}DTO();
-            #foreach($column in $columns)
-                $!{beanName}DTO.set$!{column.methodName}($!{beanName}DO.get$!{column.methodName}());
-            #end
+            BeanUtils.copyProperties($!{beanName}DO, $!{beanName}DTO);
             valueList.add($!{beanName}DTO);
         }
         return valueList;
@@ -118,9 +131,6 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public Integer countList(Map<String, Object> param) {
-        if(null == param || param.isEmpty()){
-            return -1;
-        }
         return $!{beanName}Mapper.countList(param);
     }
 
@@ -131,17 +141,15 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public int insert($!{entity}DTO $!{beanName}DTO) {
-        if(null == $!{beanName}DTO){
+        if(Objects.isNull($!{beanName}DTO)){
              logger.error("查询对象为空！");
              return -1;
         }
         $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-        #foreach($column in $columns)
-            $!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
-        #end
+        BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
         int insert= $!{beanName}Mapper.insert($!{beanName}DO);
-        if(insert>0){
-        $!{beanName}DTO.set$!{colKey.methodName}($!{beanName}DO.get$!{colKey.methodName}());
+        if(insert > 0){
+            $!{beanName}DTO.set$!{colKey.methodName}($!{beanName}DO.get$!{colKey.methodName}());
         }
         return insert;
     }
@@ -153,14 +161,12 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public int update($!{entity}DTO $!{beanName}DTO) {
-        if(null == $!{beanName}DTO){
-         logger.error("查询对象为空！");
-         return -1;
+        if(Objects.isNull($!{beanName}DTO)){
+             logger.error("查询对象为空！");
+             return -1;
         }
         $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-        #foreach($column in $columns)
-            $!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
-        #end
+        BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
         return $!{beanName}Mapper.update($!{beanName}DO);
     }
 
@@ -173,126 +179,114 @@ public class $!{entity}$!{type} implements $!{entity}Service {
     public int delete($!{colKey.javaType} $!{colKey.attrName}) {
         return $!{beanName}Mapper.delete($!{colKey.attrName});
     }
-    #set($isStatus = "false")
-     #foreach($column in $columns)
-       #if($!column.attrName=="status")
-      #set($isStatus ="true")
-       #end
-     #end
-    #set($isLastUser = "false")
-    #foreach($column in $columns)
-        #if($!column.attrName=="lastUser")
-            #set($isLastUser ="true")
-        #end
+
+#if($!isStatus=="true")
+   /**
+    * 禁用数据
+    * @param $!{colKey.attrName}
+    #if($!{isLastUser}=="true")
+        * @param userId 操作人
     #end
- #if($!isStatus=="true")
-       /**
-         * 禁用数据
-         * @param $!{colKey.attrName}
-        #if($!{isLastUser}=="true")
-         * @param userId 操作人
-         #end
-         * @return
-         */
-        @Override
-        public int disable($!{colKey.javaType} $!{colKey.attrName}#if($!{isLastUser}=="true"),String userId #end){
-            $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-     $!{beanName}DO.set$!{colKey.methodName}($!{colKey.attrName});
+    * @return
+    */
+    @Override
+    public int disable($!{colKey.javaType} $!{colKey.attrName}#if($!{isLastUser}=="true"),String userId #end){
+        $!{entity}DO $!{beanName}DO = new $!{entity}DO();
+        $!{beanName}DO.set$!{colKey.methodName}($!{colKey.attrName});
+        #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId);#end
 
-            #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId); #end
-            $!{beanName}DO.setStatus(KakaStatus.STATUS_N.getCode());
-            return $!{beanName}Mapper.updateStatus($!{beanName}DO);
-        }
-        /**
-         * 启用数据
-         * @param $!{colKey.attrName}
-        #if($!{isLastUser}=="true")
-         * @param userId 操作人
-         #end
-         * @return
-         */
-        @Override
-        public int enable($!{colKey.javaType} $!{colKey.attrName}#if($!{isLastUser}=="true"),String userId #end){
-            $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-            $!{beanName}DO.set$!{colKey.methodName}($!{colKey.attrName});
+        $!{beanName}DO.setStatus(KakaStatus.STATUS_N.getCode());
+        return $!{beanName}Mapper.updateStatus($!{beanName}DO);
+    }
 
-            #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId); #end
-            $!{beanName}DO.setStatus(KakaStatus.STATUS_Y.getCode());
-            return $!{beanName}Mapper.updateStatus($!{beanName}DO);
-        }
-        #end
+    /**
+     * 启用数据
+     * @param $!{colKey.attrName}
+    #if($!{isLastUser}=="true")
+     * @param userId 操作人
+     #end
+     * @return
+     */
+    @Override
+    public int enable($!{colKey.javaType} $!{colKey.attrName}#if($!{isLastUser}=="true"),String userId #end){
+        $!{entity}DO $!{beanName}DO = new $!{entity}DO();
+        $!{beanName}DO.set$!{colKey.methodName}($!{colKey.attrName});
+        #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId);#end
 
-        /**
-        * 批量新增记录
-        *
-        * @param list
-        * @return
-        */
-        @Override
-        public void insertBatch(List<$!{entity}DTO> list)throws Exception{
-            if (Objects.isNull(list)) {
-                logger.error("传对象为空,本次操作无效!");
-                return;
-            }
-            List<$!{entity}DO> $!{beanName}List = new ArrayList<>();
-            for ($!{entity}DTO $!{beanName}DTO : list) {
-                $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-                #foreach($column in $columns)
-                    $!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
-                #end
-                $!{beanName}List.add($!{beanName}DO);
-            }
-            try{
-                $!{beanName}Mapper.insertBatch($!{beanName}List);
-            }catch(Exception e){
-                logger.error("批量插入失败；message="+e.getMessage());
-                throw new Exception("批量插入失败");
-            }
-        }
+        $!{beanName}DO.setStatus(KakaStatus.STATUS_Y.getCode());
+        return $!{beanName}Mapper.updateStatus($!{beanName}DO);
+    }
+#end
 
-        /**
-        * 批量新增/更新记录
-        *
-        * @param insertList
-        * @param updateList
-        * @return
-        */
-        @Override
-        @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, timeout = 3600, rollbackFor = Exception.class)
-        public void insertAndUpdate(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList)throws Exception{
-            if(Objects.nonNull(updateList)&&!updateList.isEmpty()) {
-                this.updateBatch(updateList);
-            }
-            if(Objects.nonNull(insertList)&&!insertList.isEmpty()) {
-                this.insertBatch(insertList);
-            }
-        }
-
-        /**
-        * 批量更新记录
-        *
-        * @param list
-        * @return
-        */
-        @Override
-        public void updateBatch(List<$!{entity}DTO> list)throws Exception{
-            if (Objects.isNull(list)) {
-            logger.error("传对象为空,本次操作无效!");
+    /**
+    * 批量新增记录
+    *
+    * @param list
+    * @return
+    */
+    @Override
+    public void insertBatch(List<$!{entity}DTO> list)throws Exception{
+        if (CollectionUtils.isEmpty(list)) {
+            logger.error("传对象为空,本次批量新增操作无效!");
             return;
-            }
-            List<$!{entity}DO> $!{beanName}List = new ArrayList<>();
-                for ($!{entity}DTO $!{beanName}DTO : list) {
-                $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-                #foreach($column in $columns)
-                    $!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
-                #end
-                $!{beanName}List.add($!{beanName}DO);
-                }
-                try{
-                $!{beanName}Mapper.updateBatch($!{beanName}List);
-                }catch(Exception e){
-                logger.error("批量更新失败；message="+e.getMessage());
-                throw new Exception("批量更新失败");
-            }
         }
+        List<$!{entity}DO> $!{beanName}List = list.stream()
+            .map($!{beanName}DTO -> {
+                $!{entity}DO $!{beanName}DO = new $!{entity}DO();
+                BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
+                return $!{beanName}DO;
+            })
+            .collect(Collectors.toList());
+        try{
+            $!{beanName}Mapper.insertBatch($!{beanName}List);
+        }catch(Exception e){
+            logger.error("批量插入失败；message="+e.getMessage());
+            throw new Exception("批量插入失败");
+        }
+    }
+    /**
+    * 批量更新记录
+    *
+    * @param list
+    * @return
+    */
+    @Override
+    public void updateBatch(List<$!{entity}DTO> list)throws Exception{
+        if (CollectionUtils.isEmpty(list)) {
+            logger.error("传对象为空,本次批量更新操作无效!");
+            return;
+        }
+        List<$!{entity}DO> $!{beanName}List = list.stream()
+            .map($!{beanName}DTO -> {
+                $!{entity}DO $!{beanName}DO = new $!{entity}DO();
+                BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
+                return $!{beanName}DO;
+            })
+            .collect(Collectors.toList());
+        try{
+            $!{beanName}Mapper.updateBatch($!{beanName}List);
+        }catch(Exception e){
+            logger.error("批量更新失败；message="+e.getMessage());
+            throw new Exception("批量更新失败");
+        }
+    }
+
+
+    /**
+    * 批量新增/更新记录
+    *
+    * @param insertList
+    * @param updateList
+    * @return
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, timeout = 3600, rollbackFor = Exception.class)
+    public void insertAndUpdate(List<$!{entity}DTO> insertList, List<$!{entity}DTO> updateList)throws Exception{
+        if(CollectionUtils.isNotEmpty(updateList)) {
+            this.updateBatch(updateList);
+        }
+        if(CollectionUtils.isNotEmpty(insertList)) {
+            this.insertBatch(insertList);
+        }
+    }
 }

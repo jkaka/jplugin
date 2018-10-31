@@ -7,7 +7,7 @@
 package $!packagePath;
 
 #set($rootPackage = $!context.rootPackage)
-import $!{rootPackage}.biz.dataobject.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
 ##import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +18,9 @@ import java.util.Map;
 * @ClassName: $!{entity}${type}
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
  ##@Mapper

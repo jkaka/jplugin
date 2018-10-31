@@ -8,7 +8,7 @@
 #set($rootPackage = $!context.rootPackage)
 
 <mapper namespace="$!{rootPackage}.mapper.$!{entity}Mapper" >
-    <resultMap id="BaseResultMap" type="$!packagePath.$!{entity}DO" >
+    <resultMap id="BaseResultMap" type="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.$!{entity}DO" >
         #foreach($column in $columns)
             #if($column.isKey)
              <id column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />
@@ -69,7 +69,7 @@
        WHERE $!colKey.colName = #{$!colKey.attrName}
     </select>
 
-    <insert id="insert" parameterType="$!packagePath.$!{entity}DO" >
+    <insert id="insert" parameterType="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.$!{entity}DO" >
             <!-- mysql插入数据后，获取id -->
     	  <selectKey keyProperty="$!colKey.colName" resultType="$!colKey.javaType" order="AFTER" >
     		   SELECT LAST_INSERT_ID() as id
@@ -84,44 +84,85 @@
         VALUES
             (
             #foreach($column in $columns)
-              #if(("java.util.Date"==($!{column.javaType})))(UNIX_TIMESTAMP(now(3)) * 1000) #else #{$!column.attrName}#end #if($velocityCount != $columns.size()),#end
+                #if(("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                ||("gmt_create"==$!{column.colName} && "java.lang.Long"==$!{column.javaType}))
+                    UNIX_TIMESTAMP(SYSDATE(3)) * 1000
+                #elseif("java.util.Date"==$!{column.javaType})
+                    SYSDATE()
+                #elseif("create_user"==$!{column.colName})
+                    <choose>
+                        <when test="createUser == null">'system'</when>
+                        <when test="createUser != null">#{$!column.attrName}</when>
+                    </choose>
+                #elseif("last_user"==$!{column.colName})
+                    <choose>
+                        <when test="lastUser == null">'system'</when>
+                        <when test="lastUser != null">#{$!column.attrName}</when>
+                    </choose>
+                #elseif("status"==$!{column.colName})
+                    <choose>
+                        <when test="status == null">'Y'</when>
+                        <when test="status != null">#{$!column.attrName}</when>
+                    </choose>
+                #else
+                    #{$!column.attrName}
+                #end
+                #if($velocityCount != $columns.size()),#end
             #end
             )
     </insert>
 
-    <update id="update" parameterType="$!packagePath.$!{entity}DO" >
-       UPDATE $!tableName SET
+    <update id="update" parameterType="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.$!{entity}DO" >
+       UPDATE $!tableName
+        <set>
        #foreach($column in $columns)
            #if(!$column.isKey)
-           #if("gmt_modified" == $!{column.colName})
-                $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000)
-                #if($velocityCount != $columns.size()),#end
-            #elseif("gmt_create" == $!{column.colName}||"status" == $!{column.colName})
-            #else
-            <if test="$!column.attrName != null">$!column.colName = #{$!column.attrName}
-            #if($velocityCount != $columns.size()),#end </if>
-            #end
-
+               #if("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                   $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000),
+               #elseif("gmt_modified" == $!{column.colName} && "java.util.Date"==$!{column.javaType})
+                   $!column.colName = now(),
+               #elseif("gmt_create" == $!{column.colName} || "create_user" == $!{column.colName} || "status" == $!{column.colName})
+               #else
+                   <if test="$!column.attrName != null">$!column.colName = #{$!column.attrName},</if>
+               #end
            #end
        #end
+        </set>
        WHERE
             $!colKey.colName = #{$!colKey.attrName}
     </update>
 
     <insert id="insertBatch" parameterType="java.util.List">
-
-        INSERT INTO
-        $!tableName
-        (
-        #foreach($column in $columns)
-            $!column.colName#if($velocityCount != $columns.size()),#end
-        #end
-        )
+        INSERT INTO $!tableName
+        (#foreach($column in $columns)$!column.colName#if($velocityCount != $columns.size()), #end#end)
         VALUES
         <foreach collection="list" item="item" index="index" separator=",">
             (
             #foreach($column in $columns)
-                #if(("java.util.Date"==($!{column.javaType})))(UNIX_TIMESTAMP(now(3)) * 1000) #else #{item.$!column.attrName}#end #if($velocityCount != $columns.size()),#end
+                #if(("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                ||("gmt_create"==$!{column.colName} && "java.lang.Long"==$!{column.javaType}))
+                    UNIX_TIMESTAMP(SYSDATE(3)) * 1000
+                #elseif("java.util.Date"==$!{column.javaType})
+                    SYSDATE()
+                #elseif("create_user"==$!{column.colName})
+                    <choose>
+                        <when test="item.createUser == null">'system'</when>
+                        <when test="item.createUser != null">#{item.$!column.attrName}</when>
+                    </choose>
+                #elseif("last_user"==$!{column.colName})
+                    <choose>
+                        <when test="item.lastUser == null">'system'</when>
+                        <when test="item.lastUser != null">#{item.$!column.attrName}</when>
+                    </choose>
+                #elseif("status"==$!{column.colName})
+                    <choose>
+                        <when test="item.status == null">'Y'</when>
+                        <when test="item.status != null">#{item.$!column.attrName}</when>
+                    </choose>
+                #else
+                    #{item.$!column.attrName}
+                #end
+                #if($velocityCount != $columns.size()),#end
             #end
             )
         </foreach>
@@ -129,27 +170,28 @@
 
     <update id="updateBatch" parameterType="java.util.List">
         <foreach collection="list" item="item" index="index" open="" close="" separator=";">
-            UPDATE kaka_tbox SET
+            UPDATE $!tableName
+            <set>
             #foreach($column in $columns)
                 #if(!$column.isKey)
-                    #if("gmt_modified" == $!{column.colName})
-                        $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000)
-                        #if($velocityCount != $columns.size()),#end
-                    #elseif("gmt_create" == $!{column.colName}||"status" == $!{column.colName})
+                    #if("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                        $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000),
+                    #elseif("gmt_modified" == $!{column.colName} && "java.util.Date"==$!{column.javaType})
+                        $!column.colName = now(),
+                    #elseif("gmt_create" == $!{column.colName} || "create_user" == $!{column.colName} || "status" == $!{column.colName})
                     #else
-                        <if test="item.$!column.attrName != null">$!column.colName = #{item.$!column.attrName}
-                            #if($velocityCount != $columns.size()),#end </if>
+                        <if test="item.$!column.attrName != null">$!column.colName = #{item.$!column.attrName},</if>
                     #end
-
                 #end
             #end
+            </set>
             WHERE
             $!colKey.colName = #{item.$!colKey.attrName}
         </foreach>
     </update>
 
-     <update id="updateStatus" parameterType="$!packagePath.$!{entity}DO" >
-           UPDATE $!tableName SET  gmt_modified = (UNIX_TIMESTAMP(now(3)) * 1000),last_user=#{lastUser},status=#{status}
+     <update id="updateStatus" parameterType="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.$!{entity}DO" >
+           UPDATE $!tableName SET  gmt_modified = (UNIX_TIMESTAMP(now(3)) * 1000), last_user=#{lastUser}, status=#{status}
            WHERE
                 $!colKey.colName = #{$!colKey.attrName}
         </update>

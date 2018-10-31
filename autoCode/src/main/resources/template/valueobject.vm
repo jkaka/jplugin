@@ -6,19 +6,24 @@
 #set($type = $!context.type)
 package $!packagePath;
 #set($rootPackage = $!context.rootPackage)
-import com.kaka.common.base.*;
-import org.apache.commons.lang3.StringUtils;
+
+import com.kaka.common.base.BaseObject;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+
 /**
 * @Description： $!context.desc
 * @PackageName: $!packagePath
 * @ClassName: $!{entity}${type}
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class $!{entity}${type} extends BaseObject{
    #foreach($column in $columns)
     /**
@@ -27,8 +32,7 @@ public class $!{entity}${type} extends BaseObject{
     private $column.javaType $column.attrName;
    #end
 
-
-#foreach($column in $columns)
+#*#foreach($column in $columns)
     public $!column.javaType get$!column.methodName () {
         #if($!column.javaType=="java.lang.String"|| $!column.javaType=="String")
         return StringUtils.trim($!column.attrName);
@@ -44,6 +48,5 @@ public class $!{entity}${type} extends BaseObject{
         this.$!column.attrName = $!column.attrName;
         #end
     }
-  #end
-
+  #end*#
 }

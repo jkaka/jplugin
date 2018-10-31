@@ -7,17 +7,21 @@
 #set($type = $!context.type)
 package $!packagePath;
 #set($rootPackage = $!context.rootPackage)
-import $!{rootPackage}.client.dto.*;
-import $!{rootPackage}.client.service.*;
-import $!{rootPackage}.biz.service.*;
+
+import com.kaka.common.base.BaseResult;
+import com.kaka.common.base.PageResult;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}service.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.*;
 import com.kaka.common.utils.LogUtil;
+import com.kaka.common.utils.BaseResultUtil;
 import com.kaka.common.enums.*;
-import com.kaka.common.base.*;
 import com.kaka.common.constants.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.alibaba.dubbo.config.annotation.Service;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
 * @Description： $!context.desc 对外服务类
@@ -25,12 +29,12 @@ import java.util.Map;
 * @ClassName: $!{entity}Read$!{type}
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
-@Service(version = "1.0.0",timeout=10000)
+@Service(version = "1.0.0", timeout=10000)
 public class $!{entity}$!{type} implements $!{entity}ReadService {
     private  final LogUtil logger = new LogUtil(Constants.OPEN_SERVICE);
 
@@ -46,115 +50,85 @@ public class $!{entity}$!{type} implements $!{entity}ReadService {
     @Override
     public BaseResult<$!{entity}DTO> selectOne($!{colKey.javaType} $!{colKey.attrName}){
         BaseResult<$!{entity}DTO> $!{beanName}Result = new BaseResult<$!{entity}DTO>();
-        $!{beanName}Result.setCode(ResultCode.FAILURE.getCode());
-        if(null == $!{colKey.attrName}){
-        logger.error("传入参数为空！");
-        $!{beanName}Result.setMessage("传入参数为空！");
-        return $!{beanName}Result;
+        if(Objects.isNull($!{colKey.attrName})){
+            logger.error("传入主键为空！");
+            $!{beanName}Result.setMessage("传入主键为空！");
+            return $!{beanName}Result;
         }
         logger.info("根据主键查询信息,$!{colKey.attrName}:"+$!{colKey.attrName});
-            try {
+        try {
             $!{entity}DTO $!{beanName}= $!{beanName}Service.selectOne($!{colKey.attrName});
-            $!{beanName}Result.setCode(ResultCode.SUCCESS.getCode());
-            $!{beanName}Result.setData($!{beanName});
-            } catch (Exception e){
+            BaseResultUtil.wrapSuccess($!{beanName}Result, $!{beanName});
+        } catch (Exception e){
             logger.info("根据主键查询信息失败,$!{colKey.attrName}:"+$!{colKey.attrName},e);
             $!{beanName}Result.setMessage(e.getMessage());
-            }
-
-            return $!{beanName}Result;
+        }
+        return $!{beanName}Result;
      }
 
-        /**
-        * 根据传入参数查询列表 支持分页查询
-        *
-        * @param param
-        * key:   pageIndex 当前页码 默认为0
-        * key:   pageSize  页大小  默认为20
-        #foreach($column in $columns)
-            #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
+    /**
+    * 根据传入参数查询列表 支持分页查询
+    *
+    * @param param
+    * key:   pageIndex 当前页码 默认为0
+    * key:   pageSize  页大小  默认为20
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
 
-            #else
-                * key:    $!column.attrName $!column.colDesc
-            #end
+        #else
+            * key:    $!column.attrName $!column.colDesc
         #end
-        * @return
-        */
-        @Override
-        public PageResult<List<$!{entity}DTO>> selectList(Map<String, Object> param){
-            logger.info("根据传入参数查询列表 支持分页查询,param:"+param);
-            PageResult<List<$!{entity}DTO>> $!{beanName}Result = new PageResult<List<$!{entity}DTO>>();
-            $!{beanName}Result.setCode(ResultCode.FAILURE.getCode());
-            if(null == param||param.isEmpty()){
-            logger.error(ResultCode.FAILURE.getCode()+"传入对象为空!");
-            $!{beanName}Result.setMessage(ResultCode.FAILURE.getCode()+"传入对象为空!");
-            return $!{beanName}Result  ;
-            }
+    #end
+    * @return
+    */
+    @Override
+    public PageResult<List<$!{entity}DTO>> selectList(Map<String, Object> param){
+        logger.info("根据传入参数查询列表 支持分页查询,param:"+param);
+        PageResult<List<$!{entity}DTO>> $!{beanName}Result = new PageResult<List<$!{entity}DTO>>();
+        try {
+            Integer count = $!{beanName}Service.countList(param);
 
-            Integer pageIndex =  new Integer(0);
-            if(null != param.get("pageSize")){
-                $!{beanName}Result.setPageSize(new Integer(param.get("pageSize").toString()));
-            }
-            if (null != param.get("pageIndex")) {
-                pageIndex = new Integer(param.get("pageIndex").toString());
-            }
-            param.put(Constants.OFFSET_KEY,$!{beanName}Result.getPageSize()*pageIndex);
-            param.put(Constants.LIMIT_KEY,$!{beanName}Result.getPageSize());
+            Integer pageIndex = param.get(Constants.PAGE_INDEX) == null ? 0 : new Integer(param.get(Constants.PAGE_INDEX).toString());
+            Integer pageSize = param.get(Constants.PAGE_SIZE) == null ? 20 : new Integer(param.get(Constants.PAGE_SIZE).toString());
+            param.put(Constants.OFFSET_KEY, pageSize * pageIndex);
+            param.put(Constants.LIMIT_KEY, pageSize);
 
-            try {
-                Integer count = $!{beanName}Service.countList(param);
-                $!{beanName}Result.setRecord(count);
-                $!{beanName}Result.setPageIndex(pageIndex);
-                List<$!{entity}DTO> menuList= $!{beanName}Service.selectList(param);
-                $!{beanName}Result.setCode(ResultCode.SUCCESS.getCode());
-                $!{beanName}Result.setData(menuList);
-            } catch (Exception e){
-                logger.info("根据传入参数查询列表 支持分页查询失败,param:"+param);
-                $!{beanName}Result.setMessage(e.getMessage());
-            }
-
-            return $!{beanName}Result;
+            List<$!{entity}DTO> $!{beanName}List = $!{beanName}Service.selectList(param);
+            $!{beanName}Result = new PageResult<>(pageIndex, pageSize, count, $!{beanName}List);
+            BaseResultUtil.wrapSuccess($!{beanName}Result);
+        } catch (Exception e){
+            logger.info("根据传入参数查询列表 支持分页查询失败,param:"+param);
+            $!{beanName}Result.setMessage(e.getMessage());
         }
-
-        /**
-        * 根据传入参数查询列表 支持分页查询
-        *
-        * @param param
-        * key:   pageIndex 当前页码 默认为0
-        * key:   pageSize  页大小  默认为20
-        #foreach($column in $columns)
-            #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
-
-            #else
-                * key:    $!column.attrName $!column.colDesc
-            #end
-        #end
-        * @return
-        */
-        @Override
-        public BaseResult<Integer> countList(Map<String, Object> param){
-            logger.info("根据传入参数查询列表长度查询,param:"+param);
-            BaseResult<Integer> $!{beanName}Result = new BaseResult<Integer>();
-            $!{beanName}Result.setCode(ResultCode.FAILURE.getCode());
-            if(null == param||param.isEmpty()){
-                logger.error(ResultCode.FAILURE.getCode()+"传入对象为空!");
-                $!{beanName}Result.setMessage(ResultCode.FAILURE.getCode()+"传入对象为空!");
-                return $!{beanName}Result  ;
-            }
-
-            try {
-                Integer count = $!{beanName}Service.countList(param);
-                $!{beanName}Result.setData(count);
-                $!{beanName}Result.setSuccess(true);
-                $!{beanName}Result.setCode(ResultCode.SUCCESS.getCode());
-            } catch (Exception e){
-                logger.info("根据传入参数查询列表长度失败,param:"+param);
-                $!{beanName}Result.setMessage(e.getMessage());
-            }
-
-            return $!{beanName}Result;
-        }
-
-
-
+        return $!{beanName}Result;
     }
+
+    /**
+    * 根据传入参数查询记录总数
+    *
+    * @param param
+    * key:   pageIndex 当前页码 默认为0
+    * key:   pageSize  页大小  默认为20
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
+
+        #else
+            * key:    $!column.attrName $!column.colDesc
+        #end
+    #end
+    * @return
+    */
+    @Override
+    public BaseResult<Integer> countList(Map<String, Object> param){
+        logger.info("根据传入参数查询记录总数,param:" + param);
+        BaseResult<Integer> $!{beanName}Result = new BaseResult<>();
+        try {
+            Integer count = $!{beanName}Service.countList(param);
+            BaseResultUtil.wrapSuccess($!{beanName}Result, count);
+        } catch (Exception e){
+            logger.info("根据传入参数查询记录总数失败,param:"+param);
+            $!{beanName}Result.setMessage(e.getMessage());
+        }
+        return $!{beanName}Result;
+    }
+}

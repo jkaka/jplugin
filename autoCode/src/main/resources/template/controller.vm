@@ -2,6 +2,7 @@
 #set($entity = $!context.entity)
 #set($beanName = $!context.beanName)
 #set($sysCode = $!context.sysCode)
+#set($uriPrefix = $!context.uriPrefix)
 #set($columns = $!context.columns)
 #set($tableName = $!context.tableName)
 #set($colKey = $!context.colKey)
@@ -9,11 +10,13 @@
 #set($rootPackage = $!context.rootPackage)
 package $!packagePath;
 
-import $!{rootPackage}.client.dto.*;
-import $!{rootPackage}.config.properties.AppProperties;
-import com.kaka.common.utils.exception.KakaException;
-import $!{rootPackage}.biz.service.$!{entity}Service;
-import $!{rootPackage}.biz.service.token.KakaTokenService;
+import com.kaka.common.base.BaseResult;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
+import $!{rootPackage}.config.#if(!$!{context.codeStatus})properties.AppProperties;#{else}AppConfig;
+#{end}
+import com.kaka.common.utils.exception.kakaException;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.$!{entity}Service;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.token.kakaTokenService;
 import com.kaka.common.utils.*;
 import com.kaka.common.enums.*;
 import com.kaka.common.base.*;
@@ -26,7 +29,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.List;
-
+import java.util.Objects;
+import org.springframework.util.CollectionUtils;
 
 
 /**
@@ -36,9 +40,9 @@ import java.util.List;
 * @ClassName: $!{entity}Controller
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
 @RestController
@@ -51,13 +55,13 @@ public class $!{entity}Controller {
     private KakaTokenService kakaTokenService;
 
     @Autowired
-    private AppProperties appConfig;
+    private #if(!$!{context.codeStatus})AppProperties;#{else}AppConfig#{end} appConfig;
 
     /**
     * @apiIgnore Not finished Method
-    * @api {get} #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/{$!{colKey.attrName}} 根据$!{colKey.attrName}查找信息
+    * @api {get} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/{$!{colKey.attrName}} 根据$!{colKey.attrName}查找信息
     * @apiVersion 1.0.0
-    * @apiName #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/{$!{colKey.attrName}}
+    * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/{$!{colKey.attrName}}
     * @apiGroup $!{tableName}
     * @apiHeader {String} AUTHORIZATION 认证用的的令牌
     #foreach($column in $columns)
@@ -66,29 +70,30 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @RequestMapping(value="#if($!{sysCode})/$!{sysCode}#end/$!{tableName}/{$!{colKey.attrName}}",method = RequestMethod.GET)
+    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/{$!{colKey.attrName}}",method = RequestMethod.GET)
     public ResponseEntity<?>  selectOne(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
-        if(null == $!{colKey.attrName}){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
+        if(Objects.isNull($!{colKey.attrName})){
+            logger.info("传入主键为空!");
+            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST, "传入主键为空!");
         }
         $!{entity}DTO objectDTO= $!{beanName}Service.selectOne($!{colKey.attrName});
-        if(null == objectDTO){
+        if(Objects.isNull(objectDTO)){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.NOT_FOUND,"查询结果为空!");
         }
         if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
         BaseResult<$!{entity}DTO> result = new BaseResult<$!{entity}DTO>();
-        result.setData(objectDTO);
-        result.setCode(ResultCode.SUCCESS.getCode());
-          return new ResponseEntity(result, HttpStatus.OK);
+            result.setData(objectDTO);
+            result.setCode(ResultCode.SUCCESS.getCode());
+            return new ResponseEntity(result, HttpStatus.OK);
         }
         return  new ResponseEntity(objectDTO, HttpStatus.OK);
     }
 
     /**
     * @apiIgnore Not finished Method
-    * @api {post} #if($!{sysCode})/$!{sysCode}#end/$!{tableName}s 根据传入条件查询list列表
+    * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}s 根据传入条件查询list列表
     * @apiVersion 1.0.0
-    * @apiName #if($!{sysCode})/$!{sysCode}#end/$!{tableName}s
+    * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}s
     * @apiGroup $!{tableName}
     *
     * @apiHeader {String} AUTHORIZATION 认证用的的令牌
@@ -112,9 +117,9 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @RequestMapping(value="#if($!{sysCode})/$!{sysCode}#end/$!{tableName}s",method = RequestMethod.POST)
+    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}s",method = RequestMethod.POST)
     public ResponseEntity<?> selectList(HttpServletRequest request,@RequestBody Map<String,Object> data) throws KakaException {
-        if(null == data||data.isEmpty()){
+        if(CollectionUtils.isEmpty(data)){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
         }
         PageResult<List<$!{entity}DTO>> result = new PageResult<List<$!{entity}DTO>>();
@@ -131,7 +136,7 @@ public class $!{entity}Controller {
         result.setRecord(count);
         result.setPageIndex(pageIndex);
         List<$!{entity}DTO> dataList= $!{beanName}Service.selectList(data);
-        if(null == dataList|| dataList.isEmpty()){
+        if(CollectionUtils.isEmpty(dataList)){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.NOT_FOUND,"查询结果为空!");
         }
          if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
@@ -144,9 +149,56 @@ public class $!{entity}Controller {
 
     /**
     * @apiIgnore Not finished Method
-    * @api {post} #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/update 更新指定$!{colKey.attrName}信息
+    * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert 新增数据
     * @apiVersion 1.0.0
-    * @apiName #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/update
+    * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert
+    * @apiGroup $!{tableName}
+    *
+    * @apiHeader {String} AUTHORIZATION 认证用的的令牌
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="id"||$!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
+
+        #else
+            * @apiParam (Body) {$!column.javaType} #if($!column.notNull=="false") [$!column.attrName] #else  $!column.attrName   #end $!column.colDesc
+        #end
+    #end
+    * @apiSuccess (200) {String} data 插入记录条数
+    * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
+    * @apiError (500) {String} ServiceInternalError 服务器内部错误
+    */
+    @PostMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert")
+    public ResponseEntity<?>  insert(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
+    if(Objects.isNull($!{beanName}DTO)){
+        throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
+    }
+    if(null != $!{beanName}DTO.get$!{colKey.methodName}()){
+    throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"新增数据主键必需为空!"+$!{beanName}DTO.toString());
+    }
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="lastUser")
+            $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
+        #end
+    #end
+    int update= $!{beanName}Service.insert($!{beanName}DTO);
+    if(update<=0){
+        throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
+    }
+     BaseResult<Integer> result = new BaseResult<Integer>();
+     result.setData(update);
+     if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
+        result.setCode(ResultCode.SUCCESS.getCode());
+        return new ResponseEntity(result, HttpStatus.OK);
+     }
+     return  new ResponseEntity(result, HttpStatus.OK);
+    }
+
+
+
+    /**
+    * @apiIgnore Not finished Method
+    * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/update 更新指定$!{colKey.attrName}信息
+    * @apiVersion 1.0.0
+    * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/update
     * @apiGroup $!{tableName}
     *
     * @apiHeader {String} AUTHORIZATION 认证用的的令牌
@@ -161,12 +213,12 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @RequestMapping(value="#if($!{sysCode})/$!{sysCode}#end/$!{tableName}/update",method = RequestMethod.POST)
+    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/update",method = RequestMethod.POST)
     public ResponseEntity<?>  update(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
-        if(null == $!{beanName}DTO){
+        if(Objects.isNull($!{beanName}DTO)){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
         }
-        if(null == $!{beanName}DTO.get$!{colKey.methodName}()){
+        if(Objects.isNull($!{beanName}DTO.get$!{colKey.methodName}())){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新操作主键不能为空!"+$!{beanName}DTO.toString());
         }
         #foreach($column in $columns)
@@ -187,50 +239,7 @@ public class $!{entity}Controller {
     return  new ResponseEntity(result, HttpStatus.OK);
     }
 
-    /**
-    * @apiIgnore Not finished Method
-    * @api {post} #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/insert 新增数据
-    * @apiVersion 1.0.0
-    * @apiName #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/insert
-    * @apiGroup $!{tableName}
-    *
-    * @apiHeader {String} AUTHORIZATION 认证用的的令牌
-    #foreach($column in $columns)
-        #if($!{column.attrName}=="id"||$!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
 
-        #else
-        * @apiParam (Body) {$!column.javaType} #if($!column.notNull=="false") [$!column.attrName] #else  $!column.attrName   #end $!column.colDesc
-        #end
-    #end
-    * @apiSuccess (200) {String} data 插入记录条数
-    * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
-    * @apiError (500) {String} ServiceInternalError 服务器内部错误
-    */
-    @RequestMapping(value="#if($!{sysCode})/$!{sysCode}#end/$!{tableName}/insert",method = RequestMethod.POST)
-    public ResponseEntity<?>  insert(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
-        if(null == $!{beanName}DTO){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
-        }
-        if(null != $!{beanName}DTO.get$!{colKey.methodName}()){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"新增数据主键必需为空!"+$!{beanName}DTO.toString());
-        }
-        #foreach($column in $columns)
-            #if($!{column.attrName}=="lastUser")
-                $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
-            #end
-        #end
-        int update= $!{beanName}Service.insert($!{beanName}DTO);
-        if(update<=0){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
-        }
-        BaseResult<Integer> result = new BaseResult<Integer>();
-        result.setData(update);
-            if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-        result.setCode(ResultCode.SUCCESS.getCode());
-        return new ResponseEntity(result, HttpStatus.OK);
-               }
-        return  new ResponseEntity(result, HttpStatus.OK);
-    }
 #set($isStatus = "false")
      #foreach($column in $columns)
        #if($!column.attrName=="status")
@@ -246,9 +255,9 @@ public class $!{entity}Controller {
  #if($!isStatus=="true")
      /**
      * @apiIgnore Not finished Method
-     * @api {post} #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/enable/{$!{colKey.attrName}} 生效数据
+     * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}} 生效数据
      * @apiVersion 1.0.0
-     * @apiName #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/enable/{$!{colKey.attrName}}
+     * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}}
      * @apiGroup $!{tableName}
      *
      * @apiHeader {String} AUTHORIZATION 认证用的的令牌
@@ -256,9 +265,9 @@ public class $!{entity}Controller {
      * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
      * @apiError (500) {String} ServiceInternalError 服务器内部错误
      */
-    @RequestMapping(value="#if($!{sysCode})/$!{sysCode}#end/$!{tableName}/enable/{$!{colKey.attrName}}",method = RequestMethod.POST)
+    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}}",method = RequestMethod.POST)
     public ResponseEntity<?>  enable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
-        if(null == $!{colKey.attrName}){
+        if(Objects.isNull($!{colKey.attrName})){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!$!{colKey.attrName}="+$!{colKey.attrName});
         }
         int update= $!{beanName}Service.enable($!{colKey.attrName}#if($!{isLastUser}=="true") ,this.getLoginUserName(request) #end);
@@ -276,9 +285,9 @@ public class $!{entity}Controller {
 
      /**
      * @apiIgnore Not finished Method
-     * @api {post} #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/disable/{$!{colKey.attrName}} 禁用数据
+     * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}} 禁用数据
      * @apiVersion 1.0.0
-     * @apiName #if($!{sysCode})/$!{sysCode}#end/$!{tableName}/disable/{$!{colKey.attrName}}
+     * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}}
      * @apiGroup $!{tableName}
      *
      * @apiHeader {String} AUTHORIZATION 认证用的的令牌
@@ -286,7 +295,7 @@ public class $!{entity}Controller {
      * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
      * @apiError (500) {String} ServiceInternalError 服务器内部错误
      */
-    @RequestMapping(value="#if($!{sysCode})/$!{sysCode}#end/$!{tableName}/disable/{$!{colKey.attrName}}",method = RequestMethod.POST)
+    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}}",method = RequestMethod.POST)
     public ResponseEntity<?>  disable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
         if(null == $!{colKey.attrName}){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!$!{colKey.attrName}="+$!{colKey.attrName});

@@ -3,48 +3,54 @@ package com.kaka.jplugin.autocode.enums;
 public enum TemplateType {
 
     // client
-    DTO("client/dto","template/valueobject.vm","/client/src/main/java/","DTO","java"),
-    DUBBOSERVICE("client/service","template/dubboservice.vm","/client/src/main/java/","ReadService","java"),
-    DUBBOWRITESERVICE("client/service","template/dubbowriteservice.vm","/client/src/main/java/","WriteService","java"),
+    DTO("client/dto", "template/valueobject.vm", "/client/src/main/java/", "DTO", "java"),
+    DUBBOSERVICE("client/service", "template/dubboservice.vm", "/client/src/main/java/", "ReadService", "java"),
+    DUBBOWRITESERVICE("client/service", "template/dubbowriteservice.vm", "/client/src/main/java/", "WriteService", "java"),
 
     // openservice
-    DUBBOSERVICEIMP("openservice/service/impl","template/dubboserviceimpl.vm","/openservice/src/main/java/","ReadServiceImpl","java"),
-    DUBBOWRITESERVICEIMP("openservice/service/impl","template/dubbowriteserviceimpl.vm","/openservice/src/main/java/","WriteServiceImpl","java"),
+    DUBBOSERVICEIMP("openservice/service/impl", "template/dubboserviceimpl.vm", "/openservice/src/main/java/", "ReadServiceImpl", "java"),
+    DUBBOWRITESERVICEIMP("openservice/service/impl", "template/dubbowriteserviceimpl.vm", "/openservice/src/main/java/", "WriteServiceImpl", "java"),
 
 
-    DATAOBJECT("biz/dataobject","template/dataobject.vm","/biz/src/main/java/","DO","java"),
-    SERVICE("biz/service","template/service.vm","/biz/src/main/java/","service","java"),
-    SERVICEIMPL("biz/service/impl","template/serviceimpl.vm","/biz/src/main/java/","serviceImpl","java"),
-    MAPPER("biz/mapper","template/mapper.vm","/biz/src/main/java/","mapper","java"),
-    MAPPING("biz/mapper","template/mapping.vm","/biz/src/main/resources/","mapping","xml"),
+    DATAOBJECT("biz/dataobject", "template/dataobject.vm", "/biz/src/main/java/", "DO", "java"),
+    SERVICE("biz/service", "template/service.vm", "/biz/src/main/java/", "Service", "java"),
+    SERVICEIMPL("biz/service/impl", "template/serviceimpl.vm", "/biz/src/main/java/", "ServiceImpl", "java"),
+    MAPPER("biz/mapper", "template/mapper.vm", "/biz/src/main/java/", "Mapper", "java"),
+    MAPPING("biz/mapper", "template/mapping.vm", "/biz/src/main/resources/", "Mapping", "xml"),
 
-    CONTROLLER("boot/controller","template/controller.vm","/boot/src/main/java/","controller","java"),
+    CONTROLLER("boot/controller", "template/controller.vm", "/boot/src/main/java/", "Controller", "java"),
 
-    DUBBOCALLSERVICE("call/service","template/dubbocallservice.vm","/consumer/call/src/main/java/","CallService","java"),
-    DUBBOCALLSERVICEIMP("call/service/impl","template/dubbocallserviceimpl.vm","/consumer/call/src/main/java/","CallServiceImpl","java"),
-    DUBBOCONTROLLER("boot/controller","template/dubbocontroller.vm","/consumer/boot/src/main/java/","controller","java");
+    DUBBOCALLSERVICE("call/service", "template/dubbocallservice.vm", "/consumer/call/src/main/java/", "CallService", "java"),
+    DUBBOCALLSERVICEIMP("call/service/impl", "template/dubbocallserviceimpl.vm", "/consumer/call/src/main/java/", "CallServiceImpl", "java"),
+    DUBBOCONTROLLER("boot/controller", "template/dubbocontroller.vm", "/consumer/boot/src/main/java/", "Controller", "java");
 
 
-    private String pack;
+    /**
+     * 功能包名,不包含groupId
+     */
+    private String functionPackage;
     private String templateName;
     private String resPath;
     private String type;
+    /**
+     * 文件扩展名
+     */
     private String suffix;
 
-     TemplateType(String pack, String templateName, String resPath, String type, String suffix){
-        this.pack = pack;
+    TemplateType(String functionPackage, String templateName, String resPath, String type, String suffix) {
+        this.functionPackage = functionPackage;
         this.templateName = templateName;
         this.resPath = resPath;
         this.type = type;
         this.suffix = suffix;
     }
 
-    public String getPack() {
-        return pack;
+    public String getFunctionPackage() {
+        return functionPackage;
     }
 
-    public void setPack(String pack) {
-        this.pack = pack;
+    public void setFunctionPackage(String functionPackage) {
+        this.functionPackage = functionPackage;
     }
 
     public String getTemplateName() {

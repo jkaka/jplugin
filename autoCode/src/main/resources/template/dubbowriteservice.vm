@@ -7,8 +7,8 @@
 package $!packagePath;
 #set($rootPackage = $!context.rootPackage)
 
-import $!{rootPackage}.client.dto.*;
-import com.kaka.common.base.*;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
+import com.kaka.common.base.BaseResult;
 import java.util.List;
 
 /**
@@ -17,9 +17,9 @@ import java.util.List;
 * @ClassName: $!{entity}Write$!{type}
 * @project： $!context.sysCode
 * @author: jsk
-* @dep: ***部门
-*
-* @address: hundsun
+* @dep: 99技术部
+* @company: 99技术有限公司
+* @address: 国际大路,中原谷
 * @date： $!context.date
 */
 public interface $!{entity}$!{type} {

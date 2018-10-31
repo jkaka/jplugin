@@ -93,6 +93,13 @@
                 <version>${maven.version}</version>
             </dependency>
             <!--maven插件测试工具 结束-->
+
+            <!-- lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.16.6</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

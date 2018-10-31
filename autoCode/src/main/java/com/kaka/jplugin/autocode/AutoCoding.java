@@ -21,6 +21,7 @@ import com.kaka.jplugin.autocode.biz.MySqlDbHandler;
 import com.kaka.jplugin.autocode.biz.RenderHandler;
 import com.kaka.jplugin.autocode.vo.CodeVO;
 import com.kaka.jplugin.autocode.vo.ContextVO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -51,13 +52,10 @@ public class AutoCoding
         getLog().info(codeVO.toString());
         try {
             MySqlDbHandler mySqlDbHandler = new MySqlDbHandler(dataSource, codeVO);
-
             List<ContextVO> contextVOList = mySqlDbHandler.excute();
-
-            if (null != contextVOList && contextVOList.size() > 0) {
-                for (int p = 0; p < contextVOList.size(); p++) {
+            if (CollectionUtils.isNotEmpty(contextVOList)) {
+                for (ContextVO contextVO : contextVOList) {
                     // 1.把context信息渲染到Velocity信息
-                    ContextVO contextVO = contextVOList.get(p);
                     RenderHandler renderHandler = new RenderHandler(contextVO, null);
                     String content = renderHandler.excute();
 
