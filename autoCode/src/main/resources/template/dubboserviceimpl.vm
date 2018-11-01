@@ -49,7 +49,7 @@ public class $!{entity}$!{type} implements $!{entity}ReadService {
     */
     @Override
     public BaseResult<$!{entity}DTO> selectOne($!{colKey.javaType} $!{colKey.attrName}){
-        BaseResult<$!{entity}DTO> $!{beanName}Result = new BaseResult<$!{entity}DTO>();
+        BaseResult<$!{entity}DTO> $!{beanName}Result = new BaseResult<>();
         if(Objects.isNull($!{colKey.attrName})){
             logger.error("传入主键为空！");
             $!{beanName}Result.setMessage("传入主键为空！");
@@ -84,7 +84,7 @@ public class $!{entity}$!{type} implements $!{entity}ReadService {
     @Override
     public PageResult<List<$!{entity}DTO>> selectList(Map<String, Object> param){
         logger.info("根据传入参数查询列表 支持分页查询,param:"+param);
-        PageResult<List<$!{entity}DTO>> $!{beanName}Result = new PageResult<List<$!{entity}DTO>>();
+        PageResult<List<$!{entity}DTO>> $!{beanName}Result = new PageResult<>();
         try {
             Integer count = $!{beanName}Service.countList(param);
 

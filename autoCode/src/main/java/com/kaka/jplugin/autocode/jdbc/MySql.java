@@ -35,9 +35,11 @@ public class MySql {
 
             conn.setAutoCommit(true);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("建立数据库连接异常：" + e.getMessage());
+//            e.printStackTrace();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("建立数据库连接异常：" + e.getMessage());
+//            e.printStackTrace();
         }
     }
 
@@ -155,6 +157,10 @@ public class MySql {
      */
     public List<TableVO> getTablesList(List<String> tableNameList) {
         Connection conn = getConnection();
+        if(Objects.isNull(conn)){
+            System.out.println("建立数据库连接失败！请检查数据库配置");
+            return null;
+        }
         ResultSet rs = null;
         List<TableVO> tableList = new ArrayList<TableVO>();
         try {
