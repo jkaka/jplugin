@@ -55,7 +55,7 @@ public class $!{entity}Controller {
     private KakaTokenService kakaTokenService;
 
     @Autowired
-    private #if(!$!{context.codeStatus})AppProperties;#{else}AppConfig#{end} appConfig;
+    private #if(!$!{context.codeStatus})AppProperties#{else}AppConfig#{end} appConfig;
 
     /**
     * @apiIgnore Not finished Method

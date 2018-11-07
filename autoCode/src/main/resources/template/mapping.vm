@@ -7,7 +7,7 @@
 #set($colKey = $!context.colKey)
 #set($rootPackage = $!context.rootPackage)
 
-<mapper namespace="$!{rootPackage}.mapper.$!{entity}Mapper" >
+<mapper namespace="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}mapper.$!{entity}Mapper" >
     <resultMap id="BaseResultMap" type="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.$!{entity}DO" >
         #foreach($column in $columns)
             #if($column.isKey)
