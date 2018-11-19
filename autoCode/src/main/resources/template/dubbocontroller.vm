@@ -116,9 +116,36 @@ public class $!{entity}Controller {
         if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
             return new ResponseEntity(pageResult, HttpStatus.OK);
         }
-        return  new ResponseEntity(pageResult, HttpStatus.OK);
+        return  new ResponseEntity(pageResult.getData(), HttpStatus.OK);
     }
 
+    /**
+    * @apiIgnore Not finished Method
+    * @api {post} #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}s/count 根据传入条件查询记录总数
+    * @apiVersion 1.0.0
+    * @apiName #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}s/count
+    * @apiGroup $!{tableName}
+    *
+    * @apiHeader {String} AUTHORIZATION 认证用的的令牌
+    #foreach($column in $columns)
+        #if($!{column.attrName}=="lastUser"||$!{column.attrName}=="gmtCreate"||$!{column.attrName}=="gmtModified")
+        #else
+            * @apiParam (Body) {$!column.javaType}  [$!{column.attrName}]  $!column.colDesc
+        #end
+    #end
+    * @apiSuccess (200) {java.lang.Long} 记录总数
+    * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
+    * @apiError (500) {String} ServiceInternalError 服务器内部错误
+    */
+    @PostMapping(value="#if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}s/count")
+    public ResponseEntity<?> countList(HttpServletRequest request, @RequestBody Map<String,Object> param){
+        logger.info("根据传入参数查询$!{tableName}数据总数,param:" + param);
+        BaseResult<Integer> baseResult = $!{beanName}CallService.countList(Optional.ofNullable(param).orElseGet(HashMap::new));
+        if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
+            return new ResponseEntity(baseResult, HttpStatus.OK);
+        }
+        return  new ResponseEntity(baseResult.getData(), HttpStatus.OK);
+    }
 
     /**
     * @apiIgnore Not finished Method
