@@ -15,12 +15,10 @@ import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
 import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}mapper.*;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 #set($isStatus = "false")
 #foreach($column in $columns)
@@ -91,7 +89,9 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             return null;
         }
         $!{entity}DTO $!{beanName}DTO = new $!{entity}DTO();
-        BeanUtils.copyProperties($!{beanName}DO, $!{beanName}DTO);
+        #foreach($column in $columns)$!{beanName}DTO.set$!{column.methodName}($!{beanName}DO.get$!{column.methodName}());
+        #end
+
         return $!{beanName}DTO;
     }
 
@@ -118,7 +118,9 @@ public class $!{entity}$!{type} implements $!{entity}Service {
         for(int i=0;i<dataList.size();i++){
             $!{entity}DO $!{beanName}DO = dataList.get(i);
             $!{entity}DTO $!{beanName}DTO = new $!{entity}DTO();
-            BeanUtils.copyProperties($!{beanName}DO, $!{beanName}DTO);
+            #foreach($column in $columns)$!{beanName}DTO.set$!{column.methodName}($!{beanName}DO.get$!{column.methodName}());
+            #end
+
             valueList.add($!{beanName}DTO);
         }
         return valueList;
@@ -146,7 +148,9 @@ public class $!{entity}$!{type} implements $!{entity}Service {
              return -1;
         }
         $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-        BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
+        #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+        #end
+
         int insert= $!{beanName}Mapper.insert($!{beanName}DO);
         if(insert > 0){
             $!{beanName}DTO.set$!{colKey.methodName}($!{beanName}DO.get$!{colKey.methodName}());
@@ -166,7 +170,9 @@ public class $!{entity}$!{type} implements $!{entity}Service {
              return -1;
         }
         $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-        BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
+        #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+        #end
+
         return $!{beanName}Mapper.update($!{beanName}DO);
     }
 
@@ -230,13 +236,14 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             logger.error("传对象为空,本次批量新增操作无效!");
             return;
         }
-        List<$!{entity}DO> $!{beanName}List = list.stream()
-            .map($!{beanName}DTO -> {
-                $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-                BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
-                return $!{beanName}DO;
-            })
-            .collect(Collectors.toList());
+        List<$!{entity}DO> $!{beanName}List = new ArrayList<>();
+        for ($!{entity}DTO $!{beanName}DTO : list) {
+            $!{entity}DO $!{beanName}DO = new $!{entity}DO();
+            #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #end
+
+            $!{beanName}List.add($!{beanName}DO);
+        }
         try{
             $!{beanName}Mapper.insertBatch($!{beanName}List);
         }catch(Exception e){
@@ -244,6 +251,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             throw new Exception("批量插入失败");
         }
     }
+
     /**
     * 批量更新记录
     *
@@ -256,13 +264,14 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             logger.error("传对象为空,本次批量更新操作无效!");
             return;
         }
-        List<$!{entity}DO> $!{beanName}List = list.stream()
-            .map($!{beanName}DTO -> {
-                $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-                BeanUtils.copyProperties($!{beanName}DTO, $!{beanName}DO);
-                return $!{beanName}DO;
-            })
-            .collect(Collectors.toList());
+        List<$!{entity}DO> $!{beanName}List = new ArrayList<>();
+        for ($!{entity}DTO $!{beanName}DTO : list) {
+            $!{entity}DO $!{beanName}DO = new $!{entity}DO();
+            #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #end
+
+            $!{beanName}List.add($!{beanName}DO);
+        }
         try{
             $!{beanName}Mapper.updateBatch($!{beanName}List);
         }catch(Exception e){

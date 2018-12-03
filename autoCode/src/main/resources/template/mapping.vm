@@ -9,19 +9,15 @@
 
 <mapper namespace="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}mapper.$!{entity}Mapper" >
     <resultMap id="BaseResultMap" type="$!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.$!{entity}DO" >
-        #foreach($column in $columns)
-            #if($column.isKey)
-             <id column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />
-            #else
-            <result column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />
-            #end
+        #foreach($column in $columns)#if($column.primaryKey)<id column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />#else<result column="$column.colName" property="$column.attrName" jdbcType="$column.colType" />#end
+
         #end
+
     </resultMap>
 
     <sql id="base_column_list" >
-        #foreach($column in $columns)
-            $column.colName #if($velocityCount != $columns.size()),#end
-        #end
+        #foreach($column in $columns)$column.colName #if($velocityCount != $columns.size()),#end#end
+
     </sql>
 
     <sql id="base_column_where" >
@@ -116,7 +112,7 @@
        UPDATE $!tableName
         <set>
        #foreach($column in $columns)
-           #if(!$column.isKey)
+           #if(!$column.primaryKey)
                #if("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
                    $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000),
                #elseif("gmt_modified" == $!{column.colName} && "java.util.Date"==$!{column.javaType})
@@ -173,7 +169,7 @@
             UPDATE $!tableName
             <set>
             #foreach($column in $columns)
-                #if(!$column.isKey)
+                #if(!$column.primaryKey)
                     #if("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
                         $!column.colName = (UNIX_TIMESTAMP(now(3)) * 1000),
                     #elseif("gmt_modified" == $!{column.colName} && "java.util.Date"==$!{column.javaType})
