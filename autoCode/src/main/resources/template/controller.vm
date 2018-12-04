@@ -119,32 +119,12 @@ public class $!{entity}Controller {
     */
     @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}s",method = RequestMethod.POST)
     public ResponseEntity<?> selectList(HttpServletRequest request,@RequestBody Map<String,Object> data) throws KakaException {
-        if(CollectionUtils.isEmpty(data)){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
+        PageResult<List<$!{entity}DTO>> result = $!{beanName}Service.selectPage(data);
+        BaseResultUtil.wrapSuccess(result);
+        if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
+        return new ResponseEntity(result, HttpStatus.OK);
         }
-        PageResult<List<$!{entity}DTO>> result = new PageResult<List<$!{entity}DTO>>();
-        Integer pageIndex =  new Integer(0);
-        if(null != data.get("pageSize")){
-        result.setPageSize(new Integer(data.get("pageSize").toString()));
-        }
-        if (null != data.get("pageIndex")) {
-        pageIndex = new Integer(data.get("pageIndex").toString());
-        }
-        data.put(Constants.OFFSET_KEY,result.getPageSize()*pageIndex);
-        data.put(Constants.LIMIT_KEY,result.getPageSize());
-        Integer count = $!{beanName}Service.countList(data);
-        result.setRecord(count);
-        result.setPageIndex(pageIndex);
-        List<$!{entity}DTO> dataList= $!{beanName}Service.selectList(data);
-        if(CollectionUtils.isEmpty(dataList)){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.NOT_FOUND,"查询结果为空!");
-        }
-         if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-            result.setData(dataList);
-            result.setCode(ResultCode.SUCCESS.getCode());
-             return new ResponseEntity(result, HttpStatus.OK);
-         }
-      return  new ResponseEntity(dataList, HttpStatus.OK);
+        return new ResponseEntity(result.getData(), HttpStatus.OK);
     }
 
     /**

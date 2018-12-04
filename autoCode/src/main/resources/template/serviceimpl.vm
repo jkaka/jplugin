@@ -8,14 +8,19 @@
 #set($rootPackage = $!context.rootPackage)
 package $!packagePath;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kaka.common.base.PageResult;
 import com.kaka.common.constants.Constants;
 import com.kaka.common.utils.LogUtil;
+import com.kaka.common.utils.MapUtil;
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
 #if(!$!{context.codeStatus})import $!{rootPackage}.biz.service.$!{entity}Service;#{end}
 import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}mapper.*;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -53,11 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 * @date： $!context.date
 */
 @Service
-public class $!{entity}$!{type} implements $!{entity}Service {
+public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}DO> implements $!{entity}Service {
     private  final LogUtil logger = new LogUtil(this.getClass());
-
-    @Autowired
-    private $!{entity}Mapper $!{beanName}Mapper;
 
     #set($isStatus = "false")
     #set($isLastUser = "false")
@@ -83,7 +85,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             logger.error("传入主键为空！");
             return null;
         }
-        $!{entity}DO $!{beanName}DO = $!{beanName}Mapper.selectOne($!{colKey.attrName});
+        $!{entity}DO $!{beanName}DO = baseMapper.selectById($!{colKey.attrName});
         if(Objects.isNull($!{beanName}DO)){
             logger.error("查询结果为空！$!{colKey.attrName}="+$!{colKey.attrName});
             return null;
@@ -101,18 +103,23 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      * @return
      */
     @Override
-    public List<$!{entity}DTO> selectList(Map<String, Object> param) {
+    public PageResult<List<$!{entity}DTO>> selectPage(Map<String, Object> param) {
         if(Objects.isNull(param)){
-            param = new HashMap<>();
+            param = new HashMap<>(8);
         }
-        if(!(param.containsKey(Constants.OFFSET_KEY) && param.containsKey(Constants.LIMIT_KEY))){
-            param.put(Constants.OFFSET_KEY, 0);
-            param.put(Constants.LIMIT_KEY, 500);
-        }
-        List<$!{entity}DTO> valueList = new ArrayList<$!{entity}DTO>();
-        List<$!{entity}DO> dataList = $!{beanName}Mapper.selectList(param);
-        if(null == dataList || dataList.isEmpty()){
-             logger.error("查询结果为空！param="+param);
+        long currentPage = param.get(Constants.PAGE_INDEX) == null ? 0 : new Integer(param.get(Constants.PAGE_INDEX).toString());
+        long pageSize = param.get(Constants.PAGE_SIZE) == null ? 500 : new Integer(param.get(Constants.PAGE_SIZE).toString());
+        pageSize = pageSize > 5000 ? 5000 : pageSize;
+
+        Page page = new Page(currentPage, pageSize);
+        QueryWrapper<$!{entity}DO> queryWrapper = new QueryWrapper<$!{entity}DO>()
+            .allEq(MapUtil.keyHumpToUnderline(param));
+        IPage iPage = baseMapper.selectPage(page, queryWrapper);
+
+        List<$!{entity}DO> dataList = iPage.getRecords();
+        List<$!{entity}DTO> valueList = new ArrayList<>();
+        if(CollectionUtils.isEmpty(dataList)){
+            logger.error("查询结果为空！param="+param);
             return null;
         }
         for(int i=0;i<dataList.size();i++){
@@ -123,7 +130,10 @@ public class $!{entity}$!{type} implements $!{entity}Service {
 
             valueList.add($!{beanName}DTO);
         }
-        return valueList;
+        return new PageResult<>(new Long(iPage.getCurrent()).intValue(),
+                new Long(iPage.getSize()).intValue(),
+                new Long(iPage.getTotal()).intValue(),
+                valueList);
     }
 
     /**
@@ -133,7 +143,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public Integer countList(Map<String, Object> param) {
-        return $!{beanName}Mapper.countList(param);
+        return baseMapper.selectCount(new QueryWrapper<$!{entity}DO>().allEq(MapUtil.keyHumpToUnderline(param)));
     }
 
     /**
@@ -151,7 +161,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
         #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
         #end
 
-        int insert= $!{beanName}Mapper.insert($!{beanName}DO);
+        int insert= baseMapper.insert($!{beanName}DO);
         if(insert > 0){
             $!{beanName}DTO.set$!{colKey.methodName}($!{beanName}DO.get$!{colKey.methodName}());
         }
@@ -173,7 +183,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
         #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
         #end
 
-        return $!{beanName}Mapper.update($!{beanName}DO);
+        return baseMapper.updateById($!{beanName}DO);
     }
 
     /**
@@ -183,7 +193,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
      */
     @Override
     public int delete($!{colKey.javaType} $!{colKey.attrName}) {
-        return $!{beanName}Mapper.delete($!{colKey.attrName});
+        return baseMapper.deleteById($!{colKey.attrName});
     }
 
 #if($!isStatus=="true")
@@ -202,7 +212,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
         #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId);#end
 
         $!{beanName}DO.setStatus(KakaStatus.STATUS_N.getCode());
-        return $!{beanName}Mapper.updateStatus($!{beanName}DO);
+        return baseMapper.updateStatus($!{beanName}DO);
     }
 
     /**
@@ -220,7 +230,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
         #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId);#end
 
         $!{beanName}DO.setStatus(KakaStatus.STATUS_Y.getCode());
-        return $!{beanName}Mapper.updateStatus($!{beanName}DO);
+        return baseMapper.updateStatus($!{beanName}DO);
     }
 #end
 
@@ -245,7 +255,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             $!{beanName}List.add($!{beanName}DO);
         }
         try{
-            $!{beanName}Mapper.insertBatch($!{beanName}List);
+            this.saveBatch($!{beanName}List);
         }catch(Exception e){
             logger.error("批量插入失败；message="+e.getMessage());
             throw new Exception("批量插入失败");
@@ -273,7 +283,7 @@ public class $!{entity}$!{type} implements $!{entity}Service {
             $!{beanName}List.add($!{beanName}DO);
         }
         try{
-            $!{beanName}Mapper.updateBatch($!{beanName}List);
+            this.updateBatchById($!{beanName}List);
         }catch(Exception e){
             logger.error("批量更新失败；message="+e.getMessage());
             throw new Exception("批量更新失败");

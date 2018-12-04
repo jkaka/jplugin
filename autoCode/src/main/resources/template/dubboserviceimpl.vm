@@ -86,15 +86,7 @@ public class $!{entity}$!{type} implements $!{entity}ReadService {
         logger.info("根据传入参数查询列表 支持分页查询,param:"+param);
         PageResult<List<$!{entity}DTO>> $!{beanName}Result = new PageResult<>();
         try {
-            Integer count = $!{beanName}Service.countList(param);
-
-            Integer pageIndex = param.get(Constants.PAGE_INDEX) == null ? 0 : new Integer(param.get(Constants.PAGE_INDEX).toString());
-            Integer pageSize = param.get(Constants.PAGE_SIZE) == null ? 20 : new Integer(param.get(Constants.PAGE_SIZE).toString());
-            param.put(Constants.OFFSET_KEY, pageSize * pageIndex);
-            param.put(Constants.LIMIT_KEY, pageSize);
-
-            List<$!{entity}DTO> $!{beanName}List = $!{beanName}Service.selectList(param);
-            $!{beanName}Result = new PageResult<>(pageIndex, pageSize, count, $!{beanName}List);
+            $!{beanName}Result = $!{beanName}Service.selectPage(param);
             BaseResultUtil.wrapSuccess($!{beanName}Result);
         } catch (Exception e){
             logger.info("根据传入参数查询列表 支持分页查询失败,param:"+param);

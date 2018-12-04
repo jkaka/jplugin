@@ -6,6 +6,7 @@
 #set($rootPackage = $!context.rootPackage)
 package $!packagePath;
 
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 /**
@@ -20,13 +21,18 @@ import lombok.Data;
 * @date： $!context.date
 */
 @Data
+@TableName("$!tableName")
 public class $!{entity}DO {
-   #foreach($column in $columns)
+    #foreach($column in $columns)
     /**
-     * $!column.colDesc
-     */
+    * $!column.colDesc
+    */
+    #if($column.primaryKey)@TableId(value = "$!column.attrName", type = IdType.AUTO)
+    #elseif("status"==$!{column.colName})@TableLogic
+    #end
     private $column.javaType $column.attrName;
-   #end
+
+    #end
 #*#foreach($column in $columns)
     public $!column.javaType get$!column.methodName () {
     #if($!column.javaType=="java.lang.String"|| $!column.javaType=="String")

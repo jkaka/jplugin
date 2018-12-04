@@ -8,9 +8,7 @@ package $!packagePath;
 
 #set($rootPackage = $!context.rootPackage)
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
-##import org.apache.ibatis.annotations.Mapper;
-import java.util.List;
-import java.util.Map;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
 * @Description： $!context.desc
@@ -23,26 +21,7 @@ import java.util.Map;
 * @address: 国际大路,中原谷
 * @date： $!context.date
 */
- ##@Mapper
-public interface $!{entity}$!{type} {
-
-    $!{entity}DO selectOne($!{colKey.javaType} $!{colKey.attrName});
-
-    List<$!{entity}DO> selectList(Map<String,Object> param);
-
-    List<$!{entity}DO> selectListByIds(List<$!{colKey.javaType}> $!{colKey.attrName}s);
-
-    Integer countList(Map<String,Object> param);
-
-    int insert($!{entity}DO object);
-
-    int update($!{entity}DO object);
+public interface $!{entity}$!{type} extends BaseMapper<$!{entity}DO> {
 
     int updateStatus($!{entity}DO object);
-
-    int delete($!{colKey.javaType} $!{colKey.attrName});
-
-    void insertBatch(List<$!{entity}DO> list);
-
-    void updateBatch(List<$!{entity}DO> list);
 }
