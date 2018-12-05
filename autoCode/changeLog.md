@@ -30,3 +30,21 @@
         > \<consumerSysCode>tsp-admin-demo\</consumerSysCode> 消费方服务名
         
         > \<consumerRootPackage>com.kaka.admin.demo\</consumerRootPackage> 消费方基础包，如:com.kaka.demo
+        
+     
+###3.0.2-SNAPSHOT版本修改点(2018-12-03)
+1. DO
+    1. 在DO上使用@TableName注解,指定表名
+    2. 指定主键生成策略 (自增)
+    3. 指定逻辑删除字段 status
+    
+2. mapper层
+    1. mapping配置文件留下BaseResultMap、base_column_list、base_column_where及updateStatus的SQL
+    2. 去掉除了updateStatus的所有方法
+    
+3. service层
+    1. 使用MapUtil把驼峰转换为下划线
+    2. 使用selectPage代替selectList
+    3. 默认查500条,最多查5000条
+    4. 其他方法调用baseMapper的方法
+    
