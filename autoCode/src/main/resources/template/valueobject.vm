@@ -8,7 +8,6 @@ package $!packagePath;
 #set($rootPackage = $!context.rootPackage)
 
 import com.kaka.common.base.BaseObject;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
@@ -23,7 +22,6 @@ import lombok.Data;
 * @date： $!context.date
 */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class $!{entity}${type} extends BaseObject{
    #foreach($column in $columns)
     /**
