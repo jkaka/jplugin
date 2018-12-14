@@ -15,18 +15,18 @@
                 <configuration>
                     <codeVO>
                         <!--服务提供方-->
-                        <sysCode>tsp-ota</sysCode>
-                        <rootPackage>com.kaka.ota</rootPackage>
+                        <sysCode>tsp-project</sysCode>
+                        <rootPackage>com.kaka.project</rootPackage>
                         <uriPrefix>fota</uriPrefix>
                         <!--服务调用方-->
-                        <consumerSysCode>tsp-admin-ota</consumerSysCode>
-                        <consumerRootPackage>com.kaka.admin.ota</consumerRootPackage>
-                        <consumerUriPrefix>adminota</consumerUriPrefix>
+                        <consumerSysCode>tsp-admin-project</consumerSysCode>
+                        <consumerRootPackage>com.kaka.admin.project</consumerRootPackage>
+                        <consumerUriPrefix>admin_project</consumerUriPrefix>
                         <!--要生成代码的表名-->
-                        <tableNameList>jsk_test</tableNameList>
+                        <tableNameList>pets</tableNameList>
                         <!--代码生成路径-->
                         <generatePath>E:\workspace\generateCode\tsp-project-8</generatePath>
-                        <codeStatus>old</codeStatus>
+                        <!--<codeStatus>old</codeStatus>-->
                     </codeVO>
                     <dataSource>
                         <property>

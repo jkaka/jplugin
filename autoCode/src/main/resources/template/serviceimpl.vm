@@ -8,13 +8,14 @@
 #set($rootPackage = $!context.rootPackage)
 package $!packagePath;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kaka.common.base.PageResult;
 import com.kaka.common.constants.Constants;
 import com.kaka.common.utils.LogUtil;
-import com.kaka.common.utils.MapUtil;
+import org.apache.commons.lang3.StringUtils;
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
 #if(!$!{context.codeStatus})import $!{rootPackage}.biz.service.$!{entity}Service;#{end}
 import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
@@ -39,7 +40,7 @@ import java.util.*;
 #end
 
 #if($!isStatus=="true")
-import com.kaka.common.enums.KakaStatus;
+import com.kaka.common.enums.StatusEnum;
 #end
 
 import org.springframework.transaction.annotation.Isolation;
@@ -112,8 +113,8 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         pageSize = pageSize > 5000 ? 5000 : pageSize;
 
         Page page = new Page(currentPage, pageSize);
-        QueryWrapper<$!{entity}DO> queryWrapper = new QueryWrapper<$!{entity}DO>()
-            .allEq(MapUtil.keyHumpToUnderline(param));
+        $!{entity}DO $!{beanName}Param = JSONObject.parseObject(JSONObject.toJSONString(param), $!{entity}DO.class);
+        QueryWrapper<$!{entity}DO> queryWrapper = new QueryWrapper<>($!{beanName}Param);
         IPage iPage = baseMapper.selectPage(page, queryWrapper);
 
         List<$!{entity}DO> dataList = iPage.getRecords();
@@ -143,7 +144,9 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
      */
     @Override
     public Integer countList(Map<String, Object> param) {
-        return baseMapper.selectCount(new QueryWrapper<$!{entity}DO>().allEq(MapUtil.keyHumpToUnderline(param)));
+        $!{entity}DO $!{beanName}Param = JSONObject.parseObject(JSONObject.toJSONString(param), $!{entity}DO.class);
+        QueryWrapper<$!{entity}DO> queryWrapper = new QueryWrapper<>($!{beanName}Param);
+        return baseMapper.selectCount(queryWrapper);
     }
 
     /**
@@ -158,7 +161,19 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
              return -1;
         }
         $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-        #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+        #foreach($column in $columns)
+            #if(("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+            ||("gmt_create"==$!{column.colName} && "java.lang.Long"==$!{column.javaType}))
+                $!{beanName}DO.set$!{column.methodName}(System.currentTimeMillis());
+            #elseif(("gmt_modified"==$!{column.colName} && "java.util.Date"==$!{column.javaType})
+            ||("gmt_create"==$!{column.colName} && "java.util.Date"==$!{column.javaType}))
+                $!{beanName}DO.set$!{column.methodName}(new Date());
+            #elseif("create_user"==$!{column.colName} || "last_user"==$!{column.colName})
+                $!{beanName}DO.set$!{column.methodName}(StringUtils.isEmpty($!{beanName}DO.get$!{column.methodName}()) ? "system" : $!{beanName}DO.get$!{column.methodName}());
+            #elseif("status"==$!{column.colName})
+                $!{beanName}DO.set$!{column.methodName}(StatusEnum.STATUS_Y.getCode());
+            #else$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #end
         #end
 
         int insert= baseMapper.insert($!{beanName}DO);
@@ -180,7 +195,16 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
              return -1;
         }
         $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-        #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+        #foreach($column in $columns)
+            #if("gmt_create"==$!{column.colName} || "create_user"==$!{column.colName} || "status"==$!{column.colName})
+            #elseif("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                $!{beanName}DO.set$!{column.methodName}(System.currentTimeMillis());
+            #elseif("gmt_modified"==$!{column.colName} && "java.util.Date"==$!{column.javaType})
+                $!{beanName}DO.set$!{column.methodName}(new Date());
+            #elseif("last_user"==$!{column.colName})
+                $!{beanName}DO.set$!{column.methodName}(StringUtils.isEmpty($!{beanName}DO.get$!{column.methodName}()) ? "system" : $!{beanName}DO.get$!{column.methodName}());
+            #else$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #end
         #end
 
         return baseMapper.updateById($!{beanName}DO);
@@ -211,7 +235,7 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         $!{beanName}DO.set$!{colKey.methodName}($!{colKey.attrName});
         #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId);#end
 
-        $!{beanName}DO.setStatus(KakaStatus.STATUS_N.getCode());
+        $!{beanName}DO.setStatus(StatusEnum.STATUS_N.getCode());
         return baseMapper.updateStatus($!{beanName}DO);
     }
 
@@ -229,7 +253,7 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         $!{beanName}DO.set$!{colKey.methodName}($!{colKey.attrName});
         #if($!{isLastUser}=="true")$!{beanName}DO.setLastUser(userId);#end
 
-        $!{beanName}DO.setStatus(KakaStatus.STATUS_Y.getCode());
+        $!{beanName}DO.setStatus(StatusEnum.STATUS_Y.getCode());
         return baseMapper.updateStatus($!{beanName}DO);
     }
 #end
@@ -249,13 +273,25 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         List<$!{entity}DO> $!{beanName}List = new ArrayList<>();
         for ($!{entity}DTO $!{beanName}DTO : list) {
             $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-            #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #foreach($column in $columns)
+                #if(("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                ||("gmt_create"==$!{column.colName} && "java.lang.Long"==$!{column.javaType}))
+                    $!{beanName}DO.set$!{column.methodName}(System.currentTimeMillis());
+                #elseif(("gmt_modified"==$!{column.colName} && "java.util.Date"==$!{column.javaType})
+                ||("gmt_create"==$!{column.colName} && "java.util.Date"==$!{column.javaType}))
+                    $!{beanName}DO.set$!{column.methodName}(new Date());
+                #elseif("create_user"==$!{column.colName} || "last_user"==$!{column.colName})
+                    $!{beanName}DO.set$!{column.methodName}(StringUtils.isEmpty($!{beanName}DO.get$!{column.methodName}()) ? "system" : $!{beanName}DO.get$!{column.methodName}());
+                #elseif("status"==$!{column.colName})
+                    $!{beanName}DO.set$!{column.methodName}(StatusEnum.STATUS_Y.getCode());
+                #else$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+                #end
             #end
 
             $!{beanName}List.add($!{beanName}DO);
         }
         try{
-            this.saveBatch($!{beanName}List);
+            this.saveBatch($!{beanName}List, $!{beanName}List.size());
         }catch(Exception e){
             logger.error("批量插入失败；message="+e.getMessage());
             throw new Exception("批量插入失败");
@@ -277,13 +313,22 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         List<$!{entity}DO> $!{beanName}List = new ArrayList<>();
         for ($!{entity}DTO $!{beanName}DTO : list) {
             $!{entity}DO $!{beanName}DO = new $!{entity}DO();
-            #foreach($column in $columns)$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #foreach($column in $columns)
+                #if("gmt_create"==$!{column.colName} || "create_user"==$!{column.colName} || "status"==$!{column.colName})
+                #elseif("gmt_modified"==$!{column.colName} && "java.lang.Long"==$!{column.javaType})
+                    $!{beanName}DO.set$!{column.methodName}(System.currentTimeMillis());
+                #elseif("gmt_modified"==$!{column.colName} && "java.util.Date"==$!{column.javaType})
+                    $!{beanName}DO.set$!{column.methodName}(new Date());
+                #elseif("last_user"==$!{column.colName})
+                    $!{beanName}DO.set$!{column.methodName}(StringUtils.isEmpty($!{beanName}DO.get$!{column.methodName}()) ? "system" : $!{beanName}DO.get$!{column.methodName}());
+                #else$!{beanName}DO.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+                #end
             #end
 
             $!{beanName}List.add($!{beanName}DO);
         }
         try{
-            this.updateBatchById($!{beanName}List);
+            this.updateBatchById($!{beanName}List, $!{beanName}List.size());
         }catch(Exception e){
             logger.error("批量更新失败；message="+e.getMessage());
             throw new Exception("批量更新失败");

@@ -77,15 +77,15 @@ public class $!{entity}$!{type} implements $!{entity}CallService{
     */
     @Override
     public PageResult<List<$!{entity}DTO>> selectList(Map<String,Object> param) {
-        logger.info("查询$!{entity}DTO列表参数如下：param=" + param);
-        PageResult<List<$!{entity}DTO>> baseResult = new PageResult<>();
+        logger.info("查询$!{beanName}DTO列表参数如下：param=" + param);
+        PageResult<List<$!{entity}DTO>> pageResult = new PageResult<>();
         try {
-            baseResult = $!{beanName}ReadService.selectList(param);
+            pageResult = $!{beanName}ReadService.selectList(param);
         } catch (Throwable e) {
             logger.error("根据param查询列表失败!", e);
-            baseResult.setMessage("调用dubbo服务失败！$!{beanName}ReadService");
+            pageResult.setMessage("调用dubbo服务失败！$!{beanName}ReadService");
         }
-        return baseResult;
+        return pageResult;
     }
 
     /**

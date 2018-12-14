@@ -14,9 +14,10 @@ import com.kaka.common.base.BaseResult;
 import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.*;
 import $!{rootPackage}.config.#if(!$!{context.codeStatus})properties.AppProperties;#{else}AppConfig;
 #{end}
-import com.kaka.common.utils.exception.kakaException;
+
+import com.kaka.common.utils.exception.KakaException;
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.$!{entity}Service;
-import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.token.kakaTokenService;
+import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.token.KakaTokenService;
 import com.kaka.common.utils.*;
 import com.kaka.common.enums.*;
 import com.kaka.common.base.*;
@@ -77,16 +78,7 @@ public class $!{entity}Controller {
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST, "传入主键为空!");
         }
         $!{entity}DTO objectDTO= $!{beanName}Service.selectOne($!{colKey.attrName});
-        if(Objects.isNull(objectDTO)){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.NOT_FOUND,"查询结果为空!");
-        }
-        if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-        BaseResult<$!{entity}DTO> result = new BaseResult<$!{entity}DTO>();
-            result.setData(objectDTO);
-            result.setCode(ResultCode.SUCCESS.getCode());
-            return new ResponseEntity(result, HttpStatus.OK);
-        }
-        return  new ResponseEntity(objectDTO, HttpStatus.OK);
+        return new ResponseEntity(BaseResultUtil.handlerSuccess(objectDTO), HttpStatus.OK);
     }
 
     /**
@@ -121,10 +113,7 @@ public class $!{entity}Controller {
     public ResponseEntity<?> selectList(HttpServletRequest request,@RequestBody Map<String,Object> data) throws KakaException {
         PageResult<List<$!{entity}DTO>> result = $!{beanName}Service.selectPage(data);
         BaseResultUtil.wrapSuccess(result);
-        if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
         return new ResponseEntity(result, HttpStatus.OK);
-        }
-        return new ResponseEntity(result.getData(), HttpStatus.OK);
     }
 
     /**
@@ -148,28 +137,22 @@ public class $!{entity}Controller {
     */
     @PostMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert")
     public ResponseEntity<?>  insert(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
-    if(Objects.isNull($!{beanName}DTO)){
-        throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
-    }
-    if(null != $!{beanName}DTO.get$!{colKey.methodName}()){
-    throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"新增数据主键必需为空!"+$!{beanName}DTO.toString());
-    }
-    #foreach($column in $columns)
-        #if($!{column.attrName}=="lastUser")
-            $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
+        if(Objects.isNull($!{beanName}DTO)){
+            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
+        }
+        if(null != $!{beanName}DTO.get$!{colKey.methodName}()){
+            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"新增数据主键必需为空!"+$!{beanName}DTO.toString());
+        }
+        #foreach($column in $columns)
+            #if($!{column.attrName}=="lastUser")
+                $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
+            #end
         #end
-    #end
-    int update= $!{beanName}Service.insert($!{beanName}DTO);
-    if(update<=0){
-        throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
-    }
-     BaseResult<Integer> result = new BaseResult<Integer>();
-     result.setData(update);
-     if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-        result.setCode(ResultCode.SUCCESS.getCode());
-        return new ResponseEntity(result, HttpStatus.OK);
-     }
-     return  new ResponseEntity(result, HttpStatus.OK);
+        int update= $!{beanName}Service.insert($!{beanName}DTO);
+        if(update<=0){
+            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
+        }
+        return  new ResponseEntity(BaseResultUtil.handlerSuccess(update), HttpStatus.OK);
     }
 
 
@@ -210,13 +193,7 @@ public class $!{entity}Controller {
         if(update<=0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
         }
-        BaseResult<Integer> result = new BaseResult<Integer>();
-        result.setData(update);
-         if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-        result.setCode(ResultCode.SUCCESS.getCode());
-         return new ResponseEntity(result, HttpStatus.OK);
-       }
-    return  new ResponseEntity(result, HttpStatus.OK);
+        return new ResponseEntity(BaseResultUtil.handlerSuccess(update), HttpStatus.OK);
     }
 
 
@@ -254,13 +231,7 @@ public class $!{entity}Controller {
         if(update<=0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+update"+update);
         }
-        BaseResult<Integer> result = new BaseResult<Integer>();
-        result.setData(update);
-        if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-        result.setCode(ResultCode.SUCCESS.getCode());
-        return new ResponseEntity(result, HttpStatus.OK);
-        }
-        return  new ResponseEntity(result, HttpStatus.OK);
+        return  new ResponseEntity(BaseResultUtil.handlerSuccess(update), HttpStatus.OK);
     }
 
      /**
@@ -284,13 +255,7 @@ public class $!{entity}Controller {
         if(update<=0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+update"+update);
         }
-     BaseResult<Integer> result = new BaseResult<Integer>();
-     result.setData(update);
-         if(Constants.RESPONSE_FORMAT_UNREST.equals((HttpUtil.getResponseformat(request)))) {
-        result.setCode(ResultCode.SUCCESS.getCode());
-       return new ResponseEntity(result, HttpStatus.OK);
-               }
-      return  new ResponseEntity(result, HttpStatus.OK);
+      return  new ResponseEntity(BaseResultUtil.handlerSuccess(update), HttpStatus.OK);
     }
     #end
 
