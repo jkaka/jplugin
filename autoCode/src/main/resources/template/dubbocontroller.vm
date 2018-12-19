@@ -15,7 +15,7 @@ import $!{consumerRootPackage}.config.#if(!$!{context.codeStatus})properties.App
 #{end}
 import $!{consumerRootPackage}.call.#if(!$!{context.codeStatus})service.#{end}$!{entity}CallService;
 import $!{consumerRootPackage}.#if(!$!{context.codeStatus})biz.#{end}service.token.KakaTokenService;
-import $!{consumerRootPackage}.#if(!$!{context.codeStatus})biz.#{end}exception.KakaException;
+import com.kaka.common.utils.exception.KakaException;
 import com.kaka.common.base.BaseResult;
 import com.kaka.common.utils.*;
 import com.kaka.common.enums.*;
@@ -149,7 +149,7 @@ public class $!{entity}Controller {
 
     /**
     * @apiIgnore Not finished Method
-    * @api {post} #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}/insert 新增数据
+    * @api {post} #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName} 新增数据
     * @apiVersion 1.0.0
     * @apiName #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}/insert
     * @apiGroup $!{tableName}
@@ -166,7 +166,7 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @PostMapping(value="#if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}/insert")
+    @PostMapping(value="#if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}")
     public ResponseEntity<?>  insert(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
         if(Objects.isNull($!{beanName}DTO)){
             logger.info("传入对象为空!");
@@ -191,7 +191,7 @@ public class $!{entity}Controller {
 
     /**
     * @apiIgnore Not finished Method
-    * @api {put} #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}/update 更新指定$!{colKey.attrName}信息
+    * @api {put} #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName} 更新指定$!{colKey.attrName}信息
     * @apiVersion 1.0.0
     * @apiName #if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}/update
     * @apiGroup $!{tableName}
@@ -210,7 +210,7 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @PutMapping(value="#if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}/update")
+    @PutMapping(value="#if($!{consumerUriPrefix})/$!{consumerUriPrefix}#end/$!{tableName}")
     public ResponseEntity<?>  update(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
         if(Objects.isNull($!{beanName}DTO)){
             logger.info("传入对象为空!");

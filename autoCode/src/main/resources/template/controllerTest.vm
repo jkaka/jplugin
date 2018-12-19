@@ -1,0 +1,295 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($beanName = $!context.beanName)
+#set($sysCode = $!context.sysCode)
+#set($uriPrefix = $!context.uriPrefix)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+#set($rootPackage = $!context.rootPackage)
+package $!packagePath;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import $!{rootPackage}.ApplicationTest;
+import $!{rootPackage}.TestSuits;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.$!{entity}DTO;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import java.util.Date;
+
+/**
+* @apiDefine $!{tableName} $!context.desc
+* @Description： $!context.desc
+* @PackageName: $!packagePath
+* @ClassName: $!{entity}Controller
+* @project： $!context.sysCode
+* @author: jsk
+* @dep: jsk部
+* @company: jsk
+* @address: 浙江省杭州市
+* @date： $!context.date
+*/
+public class $!{entity}$!{type} extends ApplicationTest {
+    private MockMvc mvc;
+    private String token = TestSuits.token;
+
+    private $!{entity}DTO $!{beanName}DTO = new $!{entity}DTO();
+
+    @Autowired
+    private WebApplicationContext webApplicationConnect;
+
+    @Before
+    public void before() throws Exception {
+        mvc = MockMvcBuilders.webAppContextSetup(webApplicationConnect).build();
+        this.insertTest();
+        this.selectListTest();
+    }
+
+    @After
+    public void after() throws Exception {
+        // this.deleteTest();
+    }
+
+    public void insertTest() throws Exception {
+        String uri = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}";
+        #foreach($column in $columns)
+            #if("gmt_modified" == $!{column.colName}
+            || "gmt_create" == $!{column.colName}
+            || "status" == $!{column.colName}
+            || $!{colKey.attrName} == $!{column.colName})
+            #else
+                #if("java.util.Date"==($!{column.javaType}))
+                    $!{beanName}DTO.set$!{column.methodName}(new Date());
+                #elseif("java.lang.Integer"==($!{column.javaType}))
+                    $!{beanName}DTO.set$!{column.methodName}(new Long(100));
+                #elseif("java.lang.Long"==($!{column.javaType}))
+                    $!{beanName}DTO.set$!{column.methodName}(new Long(100));
+                #elseif("java.lang.String"==($!{column.javaType}))
+                    $!{beanName}DTO.set$!{column.methodName}("$!{column.methodName}");
+                #elseif("java.lang.Double"==($!{column.javaType}))
+                    $!{beanName}DTO.set$!{column.methodName}(new Double(100));
+                #elseif("java.lang.Float"==($!{column.javaType}))
+                    $!{beanName}DTO.set$!{column.methodName}(new Float(100));
+                #end
+            #end
+        #end
+        String content$!{entity}Insert = JSONObject.toJSONString($!{beanName}DTO);
+        MvcResult mvc$!{entity}InsertResult = mvc.perform(MockMvcRequestBuilders.post(uri)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(content$!{entity}Insert)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Insert = mvc$!{entity}InsertResult.getResponse().getStatus();
+        System.out.println("status$!{entity}Insert:"+status$!{entity}Insert);
+        // 判断状态码
+        Assert.assertTrue("正确的返回值为200", status$!{entity}Insert == 200);
+        // 判断success
+        String content$!{entity}InsertBody = mvc$!{entity}InsertResult.getResponse().getContentAsString();
+        JSONObject jsonInsert = JSONObject.parseObject(content$!{entity}InsertBody);
+        Assert.assertTrue("数据写入成功,success状态不正确", true==jsonInsert.getBoolean("success"));
+    }
+
+    public void deleteTest() throws Exception {
+        String uri = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/" + $!{beanName}DTO.get$!{colKey.methodName}();
+        MvcResult mvc$!{entity}DeleteResult = mvc.perform(MockMvcRequestBuilders.delete(uri)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status = mvc$!{entity}DeleteResult.getResponse().getStatus();
+        String content = mvc$!{entity}DeleteResult.getResponse().getContentAsString();
+        // 判断状态码
+        Assert.assertTrue("删除成功的返回值应该为200", status == 200);
+        // 判断success
+        JSONObject jsonObject = JSONObject.parseObject(content);
+        Assert.assertTrue("数据写入成功,success状态不正确", true == jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    @Transactional
+    public void selectOneSuccessTest() throws Exception {
+        String uriQuery = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/"+ $!{beanName}DTO.get$!{colKey.methodName}();
+        MvcResult mvc$!{entity}QueryResult = mvc.perform(MockMvcRequestBuilders.get(uriQuery)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status = mvc$!{entity}QueryResult.getResponse().getStatus();
+        String content = mvc$!{entity}QueryResult.getResponse().getContentAsString();
+        JSONObject jsonObject = JSONObject.parseObject(content);
+
+        Assert.assertTrue("正确的返回值为200", status == 200);
+        Assert.assertTrue("数据查询成功,success字段值有误", true==jsonObject.getBoolean("success"));
+
+    }
+
+    @Test
+    @Transactional
+    public void testQueryResultIsNull() throws Exception {
+        String uriUpdate = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/999999999999";
+        MvcResult mvc$!{entity}QueryResult = mvc.perform(MockMvcRequestBuilders.get(uriUpdate)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Insert = mvc$!{entity}QueryResult.getResponse().getStatus();
+        String content$!{entity}QueryBody = mvc$!{entity}QueryResult.getResponse().getContentAsString();
+        Assert.assertTrue("查询为空，http状态应返回200", status$!{entity}Insert == 200);
+        JSONObject jsonInsert = JSONObject.parseObject(content$!{entity}QueryBody);
+        Assert.assertTrue("查询失败,返回数据如下："+content$!{entity}QueryBody, null == jsonInsert.get("data"));
+    }
+
+    @Test
+    @Transactional
+    public void selectListTest() throws Exception {
+        String content$!{entity} = JSONObject.toJSONString($!{beanName}DTO);
+        String queryUri = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}s";
+        MvcResult mvc$!{entity}QueryResult = mvc.perform(MockMvcRequestBuilders.post(queryUri)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(content$!{entity})
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Query = mvc$!{entity}QueryResult.getResponse().getStatus();
+        System.out.println("status$!{entity}Query:"+status$!{entity}Query);
+        Assert.assertTrue("错误，正确的返回值为200", status$!{entity}Query == 200);
+        String returnStr = mvc$!{entity}QueryResult.getResponse().getContentAsString();
+        JSONObject jsonInsert = JSONObject.parseObject(returnStr);
+        JSONArray jsonArray= JSONArray.parseArray(jsonInsert.getString("data"));
+        JSONObject json=null;
+        if(null != jsonArray && jsonArray.size()>0){
+            json = jsonArray.getJSONObject(0);
+        }
+        Assert.assertTrue("正确的返回值数据不为空!", json != null);
+        $!{beanName}DTO = json.toJavaObject($!{entity}DTO.class);
+    }
+
+
+    @Test
+    @Transactional
+    public void testUpdateSuccess() throws Exception {
+        String uriUpdate = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}";
+        $!{entity}DTO  $!{beanName}DTO1 = new $!{entity}DTO();
+        #foreach($column in $columns)
+            #if("gmt_modified" == $!{column.colName} || "gmt_create" == $!{column.colName})
+            #else
+                $!{beanName}DTO1.set$!{column.methodName}($!{beanName}DTO.get$!{column.methodName}());
+            #end
+        #end
+        String content$!{entity}Update = JSONObject.toJSONString($!{beanName}DTO1);
+        MvcResult mvc$!{entity}InsertResult = mvc.perform(MockMvcRequestBuilders.put(uriUpdate)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(content$!{entity}Update)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Update = mvc$!{entity}InsertResult.getResponse().getStatus();
+        System.out.println("status$!{entity}Update:"+status$!{entity}Update);
+        // 判断状态码
+        Assert.assertTrue("正确的返回值为200", status$!{entity}Update == 200);
+        // 判断success
+        String content$!{entity}UpdateBody = mvc$!{entity}InsertResult.getResponse().getContentAsString();
+        JSONObject jsonUpdate = JSONObject.parseObject(content$!{entity}UpdateBody);
+        Assert.assertTrue("数据写入成功", true==jsonUpdate.getBoolean("success"));
+    }
+
+    @Test
+    @Transactional
+    public void testUpdateFail() throws Exception {
+        String uriUpdate = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}";
+        $!{entity}DTO  $!{beanName}DTO1 = new $!{entity}DTO();
+        String content$!{entity}Update = JSONObject.toJSONString($!{beanName}DTO1);
+        MvcResult mvc$!{entity}InsertResult = mvc.perform(MockMvcRequestBuilders.put(uriUpdate)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(content$!{entity}Update)
+                .header("Authorization",token))
+                .andReturn();
+        int status = mvc$!{entity}InsertResult.getResponse().getStatus();
+        // 判断状态码
+        Assert.assertTrue("更新失败,返回值不应为200", status != 200);
+        // 判断success
+        String content$!{entity}UpdateBody = mvc$!{entity}InsertResult.getResponse().getContentAsString();
+        JSONObject jsonUpdate = JSONObject.parseObject(content$!{entity}UpdateBody);
+        Assert.assertTrue("更新失败,success字段值不正确", false==jsonUpdate.getBoolean("success"));
+    }
+
+#set($isStatus = "false")
+#foreach($column in $columns)
+    #if($!column.attrName=="status")
+        #set($isStatus ="true")
+    #end
+#end
+
+#if($!isStatus=="true")
+    @Test
+    @Transactional
+    public void testDisableSuccess() throws Exception {
+        String uriUpdate = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/"+ $!{beanName}DTO.get$!{colKey.methodName}();
+        MvcResult mvc$!{entity}DisableResult = mvc.perform(MockMvcRequestBuilders.put(uriUpdate)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Disable = mvc$!{entity}DisableResult.getResponse().getStatus();
+        String content$!{entity}UpdateBody = mvc$!{entity}DisableResult.getResponse().getContentAsString();
+        JSONObject jsonUpdate = JSONObject.parseObject(content$!{entity}UpdateBody);
+        Assert.assertTrue("正确的返回值为200", status$!{entity}Disable == 200);
+        Assert.assertTrue("数据写入成功", true==jsonUpdate.getBoolean("success"));
+
+        String uriQuery = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/"+ $!{beanName}DTO.get$!{colKey.methodName}();
+        MvcResult mvc$!{entity}QueryResult = mvc.perform(MockMvcRequestBuilders.get(uriQuery)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Query = mvc$!{entity}QueryResult.getResponse().getStatus();
+        String content$!{entity}QueryBody = mvc$!{entity}QueryResult.getResponse().getContentAsString();
+        Assert.assertTrue("正确的返回值为200", status$!{entity}Query == 200);
+        JSONObject json = JSONObject.parseObject(content$!{entity}QueryBody);
+
+        Assert.assertTrue("更新成功,数据如下："+content$!{entity}QueryBody, "N".equals(json.getString("status")));
+    }
+
+    @Test
+    @Transactional
+    public void testEnableSuccess() throws Exception {
+        String uriEnable = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/"+ $!{beanName}DTO.get$!{colKey.methodName}();
+        MvcResult mvc$!{entity}InsertResult = mvc.perform(MockMvcRequestBuilders.put(uriEnable)
+                .accept(MediaType.APPLICATION_JSON + TestSuits.accept)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Update = mvc$!{entity}InsertResult.getResponse().getStatus();
+        String content$!{entity}UpdateBody = mvc$!{entity}InsertResult.getResponse().getContentAsString();
+        Assert.assertTrue("正确的返回值为200", status$!{entity}Update == 200);
+        JSONObject jsonUpdate = JSONObject.parseObject(content$!{entity}UpdateBody);
+        Assert.assertTrue("数据写入成功", true==jsonUpdate.getBoolean("success"));
+        String uriQuery = "#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/"+ $!{beanName}DTO.get$!{colKey.methodName}();
+        MvcResult mvc$!{entity}QueryResult = mvc.perform(MockMvcRequestBuilders.get(uriQuery)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Authorization",token))
+                .andReturn();
+        int status$!{entity}Disable = mvc$!{entity}QueryResult.getResponse().getStatus();
+        String content$!{entity}QueryBody = mvc$!{entity}QueryResult.getResponse().getContentAsString();
+        Assert.assertTrue("正确的返回值为200", status$!{entity}Disable == 200);
+        JSONObject json = JSONObject.parseObject(content$!{entity}QueryBody);
+        Assert.assertTrue("更新成功,数据如下："+content$!{entity}QueryBody, "Y".equals(json.getString("status")));
+    }
+#end
+
+}

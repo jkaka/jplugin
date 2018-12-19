@@ -30,3 +30,19 @@
         > \<consumerSysCode>tsp-admin-demo\</consumerSysCode> 消费方服务名
         
         > \<consumerRootPackage>com.kaka.admin.demo\</consumerRootPackage> 消费方基础包，如:com.kaka.demo
+        
+        
+        
+        
+### 2018-12-19 更新
+1. 单元测试
+    1. controllerTest    服务提供方api接口
+    2. dubboControllerTest   服务消费方api接口
+    3. dubboReadServiceTest 服务提供方dubbo读接口
+    4. dubboWriteServiceTest 服务提供方dubbo写接口
+    
+2. controller层新增和修改的接口
+    > 使用同一个api、用请求类型区分是修改数据还是新增数据
+    
+3. 服务提供方的controller查询接口
+    > 如果数据为空，不报错，返回空数据

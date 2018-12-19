@@ -1,0 +1,50 @@
+#set($packagePath = $!context.packagePath)
+#set($entity = $!context.entity)
+#set($beanName = $!context.beanName)
+#set($sysCode = $!context.sysCode)
+#set($uriPrefix = $!context.uriPrefix)
+#set($columns = $!context.columns)
+#set($tableName = $!context.tableName)
+#set($colKey = $!context.colKey)
+#set($type = $!context.type)
+#set($rootPackage = $!context.rootPackage)
+package $!packagePath;
+
+import com.kaka.common.base.BaseResult;
+import com.kaka.common.base.PageResult;
+import $!{rootPackage}.ApplicationTest;
+import $!{rootPackage}.#if(!$!{context.codeStatus})client.#{end}dto.$!{entity}DTO;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashMap;
+import java.util.List;
+
+/**
+* @author jsk
+* @Date $!context.date
+*/
+public class $!{entity}$!{type} extends ApplicationTest {
+
+    @Autowired
+    private $!{entity}ReadService $!{beanName}ReadService;
+
+    @Test
+    public void selectOne() {
+    BaseResult<$!{entity}DTO> baseResult = $!{beanName}ReadService.selectOne(9999L);
+        Assert.assertTrue("$!{beanName}ReadService.selectOne测试失败!", baseResult.getSuccess());
+    }
+
+    @Test
+    public void selectList() {
+    PageResult<List<$!{entity}DTO>> pageResult = $!{beanName}ReadService.selectList(new HashMap<>());
+        Assert.assertTrue("$!{beanName}ReadService.selectList测试失败!", pageResult.getSuccess());
+    }
+
+    @Test
+    public void countList() {
+    BaseResult<Integer> baseResult = $!{beanName}ReadService.countList(new HashMap<>());
+        Assert.assertTrue("$!{beanName}ReadService.countList测试失败!", baseResult.getSuccess());
+    }
+}
