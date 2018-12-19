@@ -118,7 +118,7 @@ public class $!{entity}Controller {
 
     /**
     * @apiIgnore Not finished Method
-    * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert 新增数据
+    * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName} 新增数据
     * @apiVersion 1.0.0
     * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert
     * @apiGroup $!{tableName}
@@ -135,7 +135,7 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @PostMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/insert")
+    @PostMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}")
     public ResponseEntity<?>  insert(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
         if(Objects.isNull($!{beanName}DTO)){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
@@ -145,21 +145,23 @@ public class $!{entity}Controller {
         }
         #foreach($column in $columns)
             #if($!{column.attrName}=="lastUser")
-                $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
+                if(StringUtils.isEmpty($!{beanName}DTO.get$!{column.methodName}())){
+                    $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
+                }
             #end
         #end
-        int update= $!{beanName}Service.insert($!{beanName}DTO);
-        if(update<=0){
+        int insert = $!{beanName}Service.insert($!{beanName}DTO);
+        if(insert <= 0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
         }
-        return  new ResponseEntity(BaseResultUtil.handlerSuccess(update), HttpStatus.OK);
+        return  new ResponseEntity(BaseResultUtil.handlerSuccess(insert), HttpStatus.OK);
     }
 
 
 
     /**
     * @apiIgnore Not finished Method
-    * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/update 更新指定$!{colKey.attrName}信息
+    * @api {put} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName} 更新指定$!{colKey.attrName}信息
     * @apiVersion 1.0.0
     * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/update
     * @apiGroup $!{tableName}
@@ -176,7 +178,7 @@ public class $!{entity}Controller {
     * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
     * @apiError (500) {String} ServiceInternalError 服务器内部错误
     */
-    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/update",method = RequestMethod.POST)
+    @PutMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}")
     public ResponseEntity<?>  update(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
         if(Objects.isNull($!{beanName}DTO)){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
@@ -189,8 +191,8 @@ public class $!{entity}Controller {
             $!{beanName}DTO.set$!{column.methodName}(this.getLoginUserName(request));
         #end
         #end
-        int update= $!{beanName}Service.update($!{beanName}DTO);
-        if(update<=0){
+        int update = $!{beanName}Service.update($!{beanName}DTO);
+        if(update <= 0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+$!{beanName}DTO"+$!{beanName}DTO);
         }
         return new ResponseEntity(BaseResultUtil.handlerSuccess(update), HttpStatus.OK);
@@ -212,7 +214,7 @@ public class $!{entity}Controller {
  #if($!isStatus=="true")
      /**
      * @apiIgnore Not finished Method
-     * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}} 生效数据
+     * @api {put} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}} 生效数据
      * @apiVersion 1.0.0
      * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}}
      * @apiGroup $!{tableName}
@@ -222,7 +224,7 @@ public class $!{entity}Controller {
      * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
      * @apiError (500) {String} ServiceInternalError 服务器内部错误
      */
-    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}}",method = RequestMethod.POST)
+    @PutMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}}")
     public ResponseEntity<?>  enable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
         if(Objects.isNull($!{colKey.attrName})){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!$!{colKey.attrName}="+$!{colKey.attrName});
@@ -236,7 +238,7 @@ public class $!{entity}Controller {
 
      /**
      * @apiIgnore Not finished Method
-     * @api {post} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}} 禁用数据
+     * @api {put} #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}} 禁用数据
      * @apiVersion 1.0.0
      * @apiName #if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}}
      * @apiGroup $!{tableName}
@@ -246,8 +248,8 @@ public class $!{entity}Controller {
      * @apiError (400) {String} RequestParamsError 请求中的参数不符合要求
      * @apiError (500) {String} ServiceInternalError 服务器内部错误
      */
-    @RequestMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}}",method = RequestMethod.POST)
-    public ResponseEntity<?>  disable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
+    @PutMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}}")
+        public ResponseEntity<?>  disable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
         if(null == $!{colKey.attrName}){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!$!{colKey.attrName}="+$!{colKey.attrName});
         }

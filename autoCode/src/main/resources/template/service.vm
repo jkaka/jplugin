@@ -35,7 +35,7 @@ public interface $!{entity}$!{type} {
      * @param param
      * @return
      */
-PageResult<List<$!{entity}DTO>> selectPage(Map<String,Object> param);
+    PageResult<List<$!{entity}DTO>> selectPage(Map<String,Object> param);
     /**
      * 根据条件查询记录总条数
      * @param param

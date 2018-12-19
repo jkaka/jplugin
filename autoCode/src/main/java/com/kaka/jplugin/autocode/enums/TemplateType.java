@@ -18,11 +18,18 @@ public enum TemplateType {
     MAPPER("biz/mapper", "template/mapper.vm", "/biz/src/main/java/", "Mapper", "java"),
     MAPPING("biz/mapper", "template/mapping.vm", "/biz/src/main/resources/", "Mapping", "xml"),
 
+    // boot
     CONTROLLER("boot/controller", "template/controller.vm", "/boot/src/main/java/", "Controller", "java"),
 
+    CONTROLLER_TEST("boot/controller", "template/controllerTest.vm", "/boot/src/test/java/", "ControllerTest", "java"),
+    DUBBO_READE_SERVICE_TEST("client/service", "template/dubboReadServiceTest.vm", "/boot/src/test/java/", "ReadServiceTest", "java"),
+    DUBBO_WRITE_SERVICE_TEST("client/service", "template/dubboWriteServiceTest.vm", "/boot/src/test/java/", "WriteServiceTest", "java"),
+
+    // 消费者
     DUBBOCALLSERVICE("call/service", "template/dubbocallservice.vm", "/consumer/call/src/main/java/", "CallService", "java"),
     DUBBOCALLSERVICEIMP("call/service/impl", "template/dubbocallserviceimpl.vm", "/consumer/call/src/main/java/", "CallServiceImpl", "java"),
-    DUBBOCONTROLLER("boot/controller", "template/dubbocontroller.vm", "/consumer/boot/src/main/java/", "Controller", "java");
+    DUBBOCONTROLLER("boot/controller", "template/dubbocontroller.vm", "/consumer/boot/src/main/java/", "Controller", "java"),
+    DUBBO_CONTROLLER_TEST("boot/controller", "template/dubboControllerTest.vm", "/consumer/boot/src/test/java/", "ControllerTest", "java");
 
 
     /**
@@ -31,6 +38,9 @@ public enum TemplateType {
     private String functionPackage;
     private String templateName;
     private String resPath;
+    /**
+     * 实体类后缀名
+     */
     private String type;
     /**
      * 文件扩展名

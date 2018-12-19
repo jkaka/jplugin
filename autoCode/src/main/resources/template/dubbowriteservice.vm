@@ -35,7 +35,8 @@ public interface $!{entity}$!{type} {
             #set($isLastUser ="true")
         #end
     #end
-    #if($!isStatus=="true")
+
+#if($!isStatus=="true")
     /**
     * 启用记录
     * @param $!{colKey.attrName}
