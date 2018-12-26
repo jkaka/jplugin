@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kaka.common.base.PageResult;
 import com.kaka.common.constants.Constants;
+import com.kaka.common.utils.BaseResultUtil;
 import com.kaka.common.utils.LogUtil;
 import org.apache.commons.lang3.StringUtils;
 import $!{rootPackage}.#if(!$!{context.codeStatus})biz.#{end}dataobject.*;
@@ -105,23 +106,26 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
      */
     @Override
     public PageResult<List<$!{entity}DTO>> selectPage(Map<String, Object> param) {
+        logger.info("根据条件查询$!{entity}DTO数据列表！param="+param);
+        PageResult<List<$!{entity}DTO>> pageResult = new PageResult<>();
+        BaseResultUtil.wrapSuccess(pageResult);
         if(Objects.isNull(param)){
             param = new HashMap<>(8);
         }
-        long currentPage = param.get(Constants.PAGE_INDEX) == null ? 0 : new Integer(param.get(Constants.PAGE_INDEX).toString());
+        long currentPage = param.get(Constants.PAGE_INDEX) == null ? 0 : new Integer(param.get(Constants.PAGE_INDEX).toString()) + 1;
         long pageSize = param.get(Constants.PAGE_SIZE) == null ? 500 : new Integer(param.get(Constants.PAGE_SIZE).toString());
         pageSize = pageSize > 5000 ? 5000 : pageSize;
 
-        Page page = new Page(currentPage, pageSize);
+        Page<$!{entity}DO> page = new Page<>(currentPage, pageSize);
         $!{entity}DO $!{beanName}Param = JSONObject.parseObject(JSONObject.toJSONString(param), $!{entity}DO.class);
         QueryWrapper<$!{entity}DO> queryWrapper = new QueryWrapper<>($!{beanName}Param);
-        IPage iPage = baseMapper.selectPage(page, queryWrapper);
+        IPage<$!{entity}DO> iPage = baseMapper.selectPage(page, queryWrapper);
 
         List<$!{entity}DO> dataList = iPage.getRecords();
         List<$!{entity}DTO> valueList = new ArrayList<>();
         if(CollectionUtils.isEmpty(dataList)){
             logger.error("查询结果为空！param="+param);
-            return null;
+            return pageResult;
         }
         for(int i=0;i<dataList.size();i++){
             $!{entity}DO $!{beanName}DO = dataList.get(i);
@@ -131,10 +135,11 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
 
             valueList.add($!{beanName}DTO);
         }
-        return new PageResult<>(new Long(iPage.getCurrent()).intValue(),
+        pageResult.wrapPageResult(new Long(iPage.getCurrent()).intValue(),
                 new Long(iPage.getSize()).intValue(),
                 new Long(iPage.getTotal()).intValue(),
                 valueList);
+        return pageResult;
     }
 
     /**
