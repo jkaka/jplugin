@@ -83,6 +83,7 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
      */
     @Override
     public $!{entity}DTO selectOne($!{colKey.javaType} $!{colKey.attrName}) {
+        logger.info("传入主键值为:" + $!{colKey.attrName});
         if(Objects.isNull($!{colKey.attrName})){
             logger.error("传入主键为空！");
             return null;
@@ -95,7 +96,7 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         $!{entity}DTO $!{beanName}DTO = new $!{entity}DTO();
         #foreach($column in $columns)$!{beanName}DTO.set$!{column.methodName}($!{beanName}DO.get$!{column.methodName}());
         #end
-
+        logger.info("查询结果为:" + $!{beanName}DTO);
         return $!{beanName}DTO;
     }
 
@@ -135,6 +136,7 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
 
             valueList.add($!{beanName}DTO);
         }
+        logger.info("查询结果为:" + valueList);
         pageResult.wrapPageResult(new Long(iPage.getCurrent()).intValue(),
                 new Long(iPage.getSize()).intValue(),
                 new Long(iPage.getTotal()).intValue(),
