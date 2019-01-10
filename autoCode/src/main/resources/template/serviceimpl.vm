@@ -112,7 +112,7 @@ public class $!{entity}$!{type} extends ServiceImpl<$!{entity}Mapper, $!{entity}
         if(Objects.isNull(param)){
             param = new HashMap<>(8);
         }
-        long currentPage = param.get(Constants.PAGE_INDEX) == null ? 0 : new Integer(param.get(Constants.PAGE_INDEX).toString()) + 1;
+        long currentPage = param.get(Constants.PAGE_INDEX) == null ? 1 : new Integer(param.get(Constants.PAGE_INDEX).toString());
         long pageSize = param.get(Constants.PAGE_SIZE) == null ? 500 : new Integer(param.get(Constants.PAGE_SIZE).toString());
         pageSize = pageSize > 5000 ? 5000 : pageSize;
 

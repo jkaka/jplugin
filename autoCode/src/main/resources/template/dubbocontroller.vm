@@ -9,7 +9,7 @@
 #set($consumerRootPackage = $!context.consumerRootPackage)
 #set($sysCode = $!context.consumerSysCode)
 #set($consumerUriPrefix = $!context.consumerUriPrefix)
-package $!{consumerRootPackage}.#if(!$!{context.codeStatus})call.#{end}controller;
+package $!{consumerRootPackage}.#if(!$!{context.codeStatus})boot.#{end}controller;
 
 import $!{consumerRootPackage}.config.#if(!$!{context.codeStatus})properties.AppProperties;#{else}AppConfig;
 #{end}
