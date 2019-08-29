@@ -137,9 +137,7 @@ public class $!{entity}Controller {
     */
     @PostMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}")
     public ResponseEntity<?>  insert(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
-        if(Objects.isNull($!{beanName}DTO)){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
-        }
+        // $!{beanName}DTO不可能为null  前端传入{}时,各个属性为null;前端传null时mvc框架报错！
         if(null != $!{beanName}DTO.get$!{colKey.methodName}()){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"新增数据主键必需为空!"+$!{beanName}DTO.toString());
         }
@@ -180,9 +178,6 @@ public class $!{entity}Controller {
     */
     @PutMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}")
     public ResponseEntity<?>  update(HttpServletRequest request,@RequestBody $!{entity}DTO $!{beanName}DTO) throws KakaException {
-        if(Objects.isNull($!{beanName}DTO)){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!");
-        }
         if(Objects.isNull($!{beanName}DTO.get$!{colKey.methodName}())){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新操作主键不能为空!"+$!{beanName}DTO.toString());
         }
@@ -226,9 +221,6 @@ public class $!{entity}Controller {
      */
     @PutMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/enable/{$!{colKey.attrName}}")
     public ResponseEntity<?>  enable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
-        if(Objects.isNull($!{colKey.attrName})){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!$!{colKey.attrName}="+$!{colKey.attrName});
-        }
         int update= $!{beanName}Service.enable($!{colKey.attrName}#if($!{isLastUser}=="true") ,this.getLoginUserName(request) #end);
         if(update<=0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+update"+update);
@@ -250,9 +242,6 @@ public class $!{entity}Controller {
      */
     @PutMapping(value="#if($!{uriPrefix})/$!{uriPrefix}#end/$!{tableName}/disable/{$!{colKey.attrName}}")
         public ResponseEntity<?>  disable(HttpServletRequest request,@PathVariable $!colKey.javaType $!{colKey.attrName}) throws KakaException {
-        if(null == $!{colKey.attrName}){
-            throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"传入对象为空!$!{colKey.attrName}="+$!{colKey.attrName});
-        }
         int update= $!{beanName}Service.disable($!{colKey.attrName}#if($!{isLastUser}=="true"),this.getLoginUserName(request)#end);
         if(update<=0){
             throw new KakaException(ResultCode.FAILURE.getCode(),HttpStatus.BAD_REQUEST,"更新失败!+update"+update);
